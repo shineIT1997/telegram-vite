@@ -1,44 +1,47 @@
-import generateIdFor from './generateIdFor';
+import generateIdFor from "./generateIdFor";
 
 export interface CancellableCallback {
-  (
-    ...args: any[]
-  ): void;
+  (...args: any[]): void;
 
   isCanceled?: boolean;
   acceptsBuffer?: boolean;
 }
 
 type CallMethodData = {
-  type: 'callMethod';
+  type: "callMethod";
   messageId?: string;
   name: string;
   args: any;
   withCallback?: boolean;
 };
 
-type OriginMessageData = CallMethodData | {
-  type: 'cancelProgress';
-  messageId: string;
-};
+type OriginMessageData =
+  | CallMethodData
+  | {
+      type: "cancelProgress";
+      messageId: string;
+    };
 
 export interface OriginMessageEvent {
   data: OriginMessageData;
 }
 
-export type WorkerMessageData = {
-  type: 'methodResponse';
-  messageId: string;
-  response?: any;
-  error?: { message: string };
-} | {
-  type: 'methodCallback';
-  messageId: string;
-  callbackArgs: any[];
-} | {
-  type: 'unhandledError';
-  error?: { message: string };
-};
+export type WorkerMessageData =
+  | {
+      type: "methodResponse";
+      messageId: string;
+      response?: any;
+      error?: { message: string };
+    }
+  | {
+      type: "methodCallback";
+      messageId: string;
+      callbackArgs: any[];
+    }
+  | {
+      type: "unhandledError";
+      error?: { message: string };
+    };
 
 export interface WorkerMessageEvent {
   data: WorkerMessageData;
@@ -66,7 +69,7 @@ export default class WorkerConnector {
 
     const messageId = generateIdFor(requestStates);
     const payload: CallMethodData = {
-      type: 'callMethod',
+      type: "callMethod",
       messageId,
       ...messageData,
     };
@@ -78,7 +81,7 @@ export default class WorkerConnector {
       Object.assign(requestState, { resolve, reject });
     });
 
-    if (typeof payload.args[payload.args.length - 1] === 'function') {
+    if (typeof payload.args[payload.args.length - 1] === "function") {
       payload.withCallback = true;
 
       const callback = payload.args.pop() as AnyToVoidFunction;
@@ -105,13 +108,14 @@ export default class WorkerConnector {
   cancelCallback(progressCallback: CancellableCallback) {
     progressCallback.isCanceled = true;
 
-    const { messageId } = this.requestStatesByCallback.get(progressCallback) || {};
+    const { messageId } =
+      this.requestStatesByCallback.get(progressCallback) || {};
     if (!messageId) {
       return;
     }
 
     this.worker.postMessage({
-      type: 'cancelProgress',
+      type: "cancelProgress",
       messageId,
     });
   }
@@ -119,8 +123,8 @@ export default class WorkerConnector {
   private subscribe() {
     const { worker, requestStates } = this;
 
-    worker.addEventListener('message', ({ data }: WorkerMessageEvent) => {
-      if (data.type === 'methodResponse') {
+    worker.addEventListener("message", ({ data }: WorkerMessageEvent) => {
+      if (data.type === "methodResponse") {
         const requestState = requestStates.get(data.messageId);
         if (requestState) {
           if (data.error) {
@@ -129,10 +133,10 @@ export default class WorkerConnector {
             requestState.resolve(data.response);
           }
         }
-      } else if (data.type === 'methodCallback') {
+      } else if (data.type === "methodCallback") {
         const requestState = requestStates.get(data.messageId);
         requestState?.callback?.(...data.callbackArgs);
-      } else if (data.type === 'unhandledError') {
+      } else if (data.type === "unhandledError") {
         throw new Error(data.error?.message);
       }
     });

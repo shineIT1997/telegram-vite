@@ -1,28 +1,44 @@
-import type { RefObject } from 'react';
-import type { FC } from '../../lib/teact/teact';
-import React, { useLayoutEffect, useRef } from '../../lib/teact/teact';
-import { getGlobal } from '../../global';
-import type { GlobalState } from '../../global/types';
+import type { RefObject } from "react";
+import type { FC } from "../../lib/teact/teact";
+import React, { useLayoutEffect, useRef } from "../../lib/teact/teact";
+import { getGlobal } from "../../global";
+import type { GlobalState } from "../../global/types";
 
-import { ANIMATION_LEVEL_MIN } from '../../config';
-import buildClassName from '../../util/buildClassName';
-import forceReflow from '../../util/forceReflow';
-import { waitForAnimationEnd, waitForTransitionEnd } from '../../util/cssAnimationEndListeners';
-import useForceUpdate from '../../hooks/useForceUpdate';
-import usePrevious from '../../hooks/usePrevious';
-import { dispatchHeavyAnimationEvent } from '../../hooks/useHeavyAnimationCheck';
+import { ANIMATION_LEVEL_MIN } from "../../config";
+import buildClassName from "../../util/buildClassName";
+import forceReflow from "../../util/forceReflow";
+import {
+  waitForAnimationEnd,
+  waitForTransitionEnd,
+} from "../../util/cssAnimationEndListeners";
+import useForceUpdate from "../../hooks/useForceUpdate";
+import usePrevious from "../../hooks/usePrevious";
+import { dispatchHeavyAnimationEvent } from "../../hooks/useHeavyAnimationCheck";
 
-import './Transition.scss';
+import "./Transition.scss";
 
-export type ChildrenFn = (isActive: boolean, isFrom: boolean, currentKey: number) => React.ReactNode;
+export type ChildrenFn = (
+  isActive: boolean,
+  isFrom: boolean,
+  currentKey: number
+) => React.ReactNode;
 export type TransitionProps = {
   ref?: RefObject<HTMLDivElement>;
   activeKey: number;
-  name: (
-    'none' | 'slide' | 'slide-rtl' | 'mv-slide' | 'slide-fade' | 'zoom-fade' | 'slide-layers'
-    | 'fade' | 'push-slide' | 'reveal' | 'slide-optimized' | 'slide-optimized-rtl'
-  );
-  direction?: 'auto' | 'inverse' | 1 | -1;
+  name:
+    | "none"
+    | "slide"
+    | "slide-rtl"
+    | "mv-slide"
+    | "slide-fade"
+    | "zoom-fade"
+    | "slide-layers"
+    | "fade"
+    | "push-slide"
+    | "reveal"
+    | "slide-optimized"
+    | "slide-optimized-rtl";
+  direction?: "auto" | "inverse" | 1 | -1;
   renderCount?: number;
   shouldRestoreHeight?: boolean;
   shouldCleanup?: boolean;
@@ -36,14 +52,14 @@ export type TransitionProps = {
 };
 
 const classNames = {
-  active: 'Transition__slide--active',
+  active: "Transition__slide--active",
 };
 
 const Transition: FC<TransitionProps> = ({
   ref,
   activeKey,
   name,
-  direction = 'auto',
+  direction = "auto",
   renderCount,
   shouldRestoreHeight,
   shouldCleanup,
@@ -68,7 +84,8 @@ const Transition: FC<TransitionProps> = ({
   const prevActiveKey = usePrevious<any>(activeKey);
   const forceUpdate = useForceUpdate();
 
-  const activeKeyChanged = prevActiveKey !== undefined && activeKey !== prevActiveKey;
+  const activeKeyChanged =
+    prevActiveKey !== undefined && activeKey !== prevActiveKey;
 
   if (!renderCount && activeKeyChanged) {
     rendersRef.current = { [prevActiveKey]: rendersRef.current[prevActiveKey] };
@@ -82,9 +99,14 @@ const Transition: FC<TransitionProps> = ({
         return;
       }
 
-      const preservedRender = cleanupExceptionKey !== undefined ? rendersRef.current[cleanupExceptionKey] : undefined;
+      const preservedRender =
+        cleanupExceptionKey !== undefined
+          ? rendersRef.current[cleanupExceptionKey]
+          : undefined;
 
-      rendersRef.current = preservedRender ? { [cleanupExceptionKey!]: preservedRender } : {};
+      rendersRef.current = preservedRender
+        ? { [cleanupExceptionKey!]: preservedRender }
+        : {};
 
       forceUpdate();
     }
@@ -93,9 +115,10 @@ const Transition: FC<TransitionProps> = ({
 
     const childElements = container.children;
     if (childElements.length === 1 && !activeKeyChanged) {
-      if (name.startsWith('slide-optimized')) {
-        (childElements[0] as HTMLElement).style.transition = 'none';
-        (childElements[0] as HTMLElement).style.transform = 'translate3d(0, 0, 0)';
+      if (name.startsWith("slide-optimized")) {
+        (childElements[0] as HTMLElement).style.transition = "none";
+        (childElements[0] as HTMLElement).style.transform =
+          "translate3d(0, 0, 0)";
       }
 
       childElements[0].classList.add(classNames.active);
@@ -111,17 +134,18 @@ const Transition: FC<TransitionProps> = ({
 
     currentKeyRef.current = activeKey;
 
-    const isBackwards = (
-      direction === -1
-      || (direction === 'auto' && prevActiveKey > activeKey)
-      || (direction === 'inverse' && prevActiveKey < activeKey)
-    );
+    const isBackwards =
+      direction === -1 ||
+      (direction === "auto" && prevActiveKey > activeKey) ||
+      (direction === "inverse" && prevActiveKey < activeKey);
 
     const keys = Object.keys(rendersRef.current).map(Number);
-    const prevActiveIndex = renderCount ? prevActiveKey : keys.indexOf(prevActiveKey);
+    const prevActiveIndex = renderCount
+      ? prevActiveKey
+      : keys.indexOf(prevActiveKey);
     const activeIndex = renderCount ? activeKey : keys.indexOf(activeKey);
 
-    if (name === 'slide-optimized' || name === 'slide-optimized-rtl') {
+    if (name === "slide-optimized" || name === "slide-optimized-rtl") {
       performSlideOptimized(
         animationLevel,
         name,
@@ -134,19 +158,19 @@ const Transition: FC<TransitionProps> = ({
         onStart,
         onStop,
         childNodes[activeIndex] as HTMLElement,
-        childNodes[prevActiveIndex] as HTMLElement,
+        childNodes[prevActiveIndex] as HTMLElement
       );
 
       return;
     }
 
-    container.classList.remove('animating');
-    container.classList.toggle('backwards', isBackwards);
+    container.classList.remove("animating");
+    container.classList.toggle("backwards", isBackwards);
 
-    if (name === 'none' || animationLevel === ANIMATION_LEVEL_MIN) {
+    if (name === "none" || animationLevel === ANIMATION_LEVEL_MIN) {
       childNodes.forEach((node, i) => {
         if (node instanceof HTMLElement) {
-          node.classList.remove('from', 'through', 'to');
+          node.classList.remove("from", "through", "to");
           node.classList.toggle(classNames.active, i === activeIndex);
         }
       });
@@ -159,18 +183,20 @@ const Transition: FC<TransitionProps> = ({
     childNodes.forEach((node, i) => {
       if (node instanceof HTMLElement) {
         node.classList.remove(classNames.active);
-        node.classList.toggle('from', i === prevActiveIndex);
-        node.classList.toggle('through', (
-          (i > prevActiveIndex && i < activeIndex) || (i < prevActiveIndex && i > activeIndex)
-        ));
-        node.classList.toggle('to', i === activeIndex);
+        node.classList.toggle("from", i === prevActiveIndex);
+        node.classList.toggle(
+          "through",
+          (i > prevActiveIndex && i < activeIndex) ||
+            (i < prevActiveIndex && i > activeIndex)
+        );
+        node.classList.toggle("to", i === activeIndex);
       }
     });
 
     const dispatchHeavyAnimationStop = dispatchHeavyAnimationEvent();
 
     requestAnimationFrame(() => {
-      container.classList.add('animating');
+      container.classList.add("animating");
 
       onStart?.();
 
@@ -180,20 +206,22 @@ const Transition: FC<TransitionProps> = ({
             return;
           }
 
-          container.classList.remove('animating', 'backwards');
+          container.classList.remove("animating", "backwards");
 
           childNodes.forEach((node, i) => {
             if (node instanceof HTMLElement) {
-              node.classList.remove('from', 'through', 'to');
+              node.classList.remove("from", "through", "to");
               node.classList.toggle(classNames.active, i === activeIndex);
             }
           });
 
           if (shouldRestoreHeight) {
-            const activeElement = container.querySelector<HTMLDivElement>(`.${classNames.active}`);
+            const activeElement = container.querySelector<HTMLDivElement>(
+              `.${classNames.active}`
+            );
 
             if (activeElement) {
-              activeElement.style.height = 'auto';
+              activeElement.style.height = "auto";
               container.style.height = `${activeElement.clientHeight}px`;
             }
           }
@@ -204,9 +232,10 @@ const Transition: FC<TransitionProps> = ({
         });
       }
 
-      const watchedNode = name === 'mv-slide'
-        ? childNodes[activeIndex]?.firstChild
-        : name === 'reveal' && isBackwards
+      const watchedNode =
+        name === "mv-slide"
+          ? childNodes[activeIndex]?.firstChild
+          : name === "reveal" && isBackwards
           ? childNodes[prevActiveIndex]
           : childNodes[activeIndex];
 
@@ -235,11 +264,12 @@ const Transition: FC<TransitionProps> = ({
   useLayoutEffect(() => {
     if (shouldRestoreHeight) {
       const container = containerRef.current!;
-      const activeElement = container.querySelector<HTMLDivElement>(`.${classNames.active}`)
-        || container.querySelector<HTMLDivElement>('.from');
+      const activeElement =
+        container.querySelector<HTMLDivElement>(`.${classNames.active}`) ||
+        container.querySelector<HTMLDivElement>(".from");
 
       if (activeElement) {
-        activeElement.style.height = 'auto';
+        activeElement.style.height = "auto";
         container.style.height = `${activeElement.clientHeight}px`;
         container.style.flexBasis = `${activeElement.clientHeight}px`;
       }
@@ -247,7 +277,9 @@ const Transition: FC<TransitionProps> = ({
   }, [shouldRestoreHeight, children]);
 
   const renders = rendersRef.current;
-  const renderKeys = Object.keys(renderCount ? new Array(renderCount).fill(undefined) : renders).map(Number);
+  const renderKeys = Object.keys(
+    renderCount ? new Array(renderCount).fill(undefined) : renders
+  ).map(Number);
   const contents = renderKeys.map((key) => {
     const render = renders[key];
     if (!render) {
@@ -255,11 +287,10 @@ const Transition: FC<TransitionProps> = ({
     }
 
     return (
-      <div key={key} teactOrderKey={key}>{
-        typeof render === 'function'
+      <div key={key} teactOrderKey={key}>
+        {typeof render === "function"
           ? render(key === activeKey, key === prevActiveKey, activeKey)
-          : render
-      }
+          : render}
       </div>
     );
   });
@@ -268,7 +299,7 @@ const Transition: FC<TransitionProps> = ({
     <div
       ref={containerRef}
       id={id}
-      className={buildClassName('Transition', className, name)}
+      className={buildClassName("Transition", className, name)}
       teactFastList={!renderCount}
     >
       {contents}
@@ -279,8 +310,8 @@ const Transition: FC<TransitionProps> = ({
 export default Transition;
 
 function performSlideOptimized(
-  animationLevel: GlobalState['settings']['byKey']['animationLevel'],
-  name: 'slide-optimized' | 'slide-optimized-rtl',
+  animationLevel: GlobalState["settings"]["byKey"]["animationLevel"],
+  name: "slide-optimized" | "slide-optimized-rtl",
   isBackwards: boolean,
   cleanup: NoneToVoidFunction,
   activeKey: number,
@@ -290,19 +321,19 @@ function performSlideOptimized(
   onStart?: NoneToVoidFunction,
   onStop?: NoneToVoidFunction,
   toSlide?: HTMLElement,
-  fromSlide?: HTMLElement,
+  fromSlide?: HTMLElement
 ) {
   if (!fromSlide || !toSlide) {
     return;
   }
 
   if (animationLevel === ANIMATION_LEVEL_MIN) {
-    fromSlide.style.transition = 'none';
-    fromSlide.style.transform = '';
+    fromSlide.style.transition = "none";
+    fromSlide.style.transform = "";
     fromSlide.classList.remove(classNames.active);
 
-    toSlide.style.transition = 'none';
-    toSlide.style.transform = 'translate3d(0, 0, 0)';
+    toSlide.style.transition = "none";
+    toSlide.style.transform = "translate3d(0, 0, 0)";
     toSlide.classList.add(classNames.active);
 
     cleanup();
@@ -310,7 +341,7 @@ function performSlideOptimized(
     return;
   }
 
-  if (name === 'slide-optimized-rtl') {
+  if (name === "slide-optimized-rtl") {
     isBackwards = !isBackwards;
   }
 
@@ -319,19 +350,23 @@ function performSlideOptimized(
   requestAnimationFrame(() => {
     onStart?.();
 
-    fromSlide.style.transition = 'none';
-    fromSlide.style.transform = 'translate3d(0, 0, 0)';
+    fromSlide.style.transition = "none";
+    fromSlide.style.transform = "translate3d(0, 0, 0)";
 
-    toSlide.style.transition = 'none';
-    toSlide.style.transform = `translate3d(${isBackwards ? '-' : ''}100%, 0, 0)`;
+    toSlide.style.transition = "none";
+    toSlide.style.transform = `translate3d(${
+      isBackwards ? "-" : ""
+    }100%, 0, 0)`;
 
     forceReflow(toSlide);
 
-    fromSlide.style.transition = '';
-    fromSlide.style.transform = `translate3d(${isBackwards ? '' : '-'}100%, 0, 0)`;
+    fromSlide.style.transition = "";
+    fromSlide.style.transform = `translate3d(${
+      isBackwards ? "" : "-"
+    }100%, 0, 0)`;
 
-    toSlide.style.transition = '';
-    toSlide.style.transform = 'translate3d(0, 0, 0)';
+    toSlide.style.transition = "";
+    toSlide.style.transform = "translate3d(0, 0, 0)";
 
     fromSlide.classList.remove(classNames.active);
     toSlide.classList.add(classNames.active);
@@ -341,11 +376,11 @@ function performSlideOptimized(
         return;
       }
 
-      fromSlide.style.transition = 'none';
-      fromSlide.style.transform = '';
+      fromSlide.style.transition = "none";
+      fromSlide.style.transform = "";
 
       if (shouldRestoreHeight) {
-        toSlide.style.height = 'auto';
+        toSlide.style.height = "auto";
         container.style.height = `${toSlide.clientHeight}px`;
       }
 

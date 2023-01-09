@@ -3,11 +3,11 @@ import {
   IS_SINGLE_COLUMN_LAYOUT,
   IS_SAFARI,
   IS_ANDROID,
-} from '../../util/environment';
-import WorkerConnector from '../../util/WorkerConnector';
-import { animate } from '../../util/animation';
-import cycleRestrict from '../../util/cycleRestrict';
-import { fastRaf } from '../../util/schedulers';
+} from "../../util/environment";
+import WorkerConnector from "../../util/WorkerConnector";
+import { animate } from "../../util/animation";
+import cycleRestrict from "../../util/cycleRestrict";
+import { fastRaf } from "../../util/schedulers";
 
 interface Params {
   noLoop?: boolean;
@@ -17,11 +17,8 @@ interface Params {
   coords?: { x: number; y: number };
 }
 
-const WAITING = Symbol('WAITING');
-type Frame =
-  undefined
-  | typeof WAITING
-  | ImageBitmap;
+const WAITING = Symbol("WAITING");
+type Frame = undefined | typeof WAITING | ImageBitmap;
 
 const MAX_WORKERS = 4;
 const HIGH_PRIORITY_QUALITY = IS_SINGLE_COLUMN_LAYOUT ? 0.75 : 1;
@@ -33,22 +30,30 @@ const LOW_PRIORITY_CACHE_MODULO = 0;
 const instancesById = new Map<string, RLottie>();
 
 const workers = new Array(MAX_WORKERS).fill(undefined).map(
-  () => new WorkerConnector(new Worker(new URL('./rlottie.worker.ts', import.meta.url))),
+  () =>
+    new WorkerConnector(
+      new Worker(new URL("./rlottie.worker.ts", import.meta.url), {
+        type: "module",
+      })
+    )
 );
 let lastWorkerIndex = -1;
 
 class RLottie {
   // Config
 
-  private containers = new Map<string, {
-    canvas: HTMLCanvasElement;
-    ctx: CanvasRenderingContext2D;
-    isLoaded?: boolean;
-    isPaused?: boolean;
-    isSharedCanvas?: boolean;
-    coords?: Params['coords'];
-    onLoad?: NoneToVoidFunction;
-  }>();
+  private containers = new Map<
+    string,
+    {
+      canvas: HTMLCanvasElement;
+      ctx: CanvasRenderingContext2D;
+      isLoaded?: boolean;
+      isPaused?: boolean;
+      isSharedCanvas?: boolean;
+      coords?: Params["coords"];
+      onLoad?: NoneToVoidFunction;
+    }
+  >();
 
   private imgSize!: number;
 
@@ -114,7 +119,7 @@ class RLottie {
     private params: Params = {},
     private customColor?: [number, number, number],
     private onEnded?: (isDestroyed?: boolean) => void,
-    private onLoop?: () => void,
+    private onLoop?: () => void
   ) {
     this.addContainer(containerId, container, onLoad, params.coords);
     this.initConfig();
@@ -122,9 +127,8 @@ class RLottie {
   }
 
   public removeContainer(containerId: string) {
-    const {
-      canvas, ctx, isSharedCanvas, coords,
-    } = this.containers.get(containerId)!;
+    const { canvas, ctx, isSharedCanvas, coords } =
+      this.containers.get(containerId)!;
 
     if (isSharedCanvas) {
       ctx.clearRect(coords!.x, coords!.y, this.imgSize, this.imgSize);
@@ -161,7 +165,9 @@ class RLottie {
     if (containerId) {
       this.containers.get(containerId)!.isPaused = true;
 
-      const areAllContainersPaused = Array.from(this.containers.values()).every(({ isPaused }) => isPaused);
+      const areAllContainersPaused = Array.from(this.containers.values()).every(
+        ({ isPaused }) => isPaused
+      );
       if (!areAllContainersPaused) {
         return;
       }
@@ -203,19 +209,20 @@ class RLottie {
     this.params.noLoop = noLoop;
   }
 
-  setSharedCanvasCoords(containerId: string, newCoords: Params['coords']) {
+  setSharedCanvasCoords(containerId: string, newCoords: Params["coords"]) {
     const containerInfo = this.containers.get(containerId)!;
-    const {
-      canvas, ctx,
-    } = containerInfo;
+    const { canvas, ctx } = containerInfo;
 
-    if (!canvas.dataset.isJustCleaned || canvas.dataset.isJustCleaned === 'false') {
+    if (
+      !canvas.dataset.isJustCleaned ||
+      canvas.dataset.isJustCleaned === "false"
+    ) {
       const sizeFactor = this.calcSizeFactor();
       ensureCanvasSize(canvas, sizeFactor);
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      canvas.dataset.isJustCleaned = 'true';
+      canvas.dataset.isJustCleaned = "true";
       fastRaf(() => {
-        canvas.dataset.isJustCleaned = 'false';
+        canvas.dataset.isJustCleaned = "false";
       });
     }
 
@@ -224,7 +231,9 @@ class RLottie {
       y: Math.round((newCoords?.y || 0) * canvas.height),
     };
 
-    const frame = this.getFrame(this.prevFrameIndex) || this.getFrame(Math.round(this.approxFrameIndex));
+    const frame =
+      this.getFrame(this.prevFrameIndex) ||
+      this.getFrame(Math.round(this.approxFrameIndex));
 
     if (frame && frame !== WAITING) {
       ctx.drawImage(frame, containerInfo.coords.x, containerInfo.coords.y);
@@ -235,7 +244,7 @@ class RLottie {
     containerId: string,
     container: HTMLDivElement | HTMLCanvasElement,
     onLoad?: NoneToVoidFunction,
-    coords?: Params['coords'],
+    coords?: Params["coords"]
   ) {
     const sizeFactor = this.calcSizeFactor();
 
@@ -243,25 +252,24 @@ class RLottie {
 
     if (container instanceof HTMLDivElement) {
       if (!(container.parentNode instanceof HTMLElement)) {
-        throw new Error('[RLottie] Container is not mounted');
+        throw new Error("[RLottie] Container is not mounted");
       }
 
       let { size } = this.params;
 
       if (!size) {
-        size = (
-          container.offsetWidth
-          || parseInt(container.style.width, 10)
-          || container.parentNode.offsetWidth
-        );
+        size =
+          container.offsetWidth ||
+          parseInt(container.style.width, 10) ||
+          container.parentNode.offsetWidth;
 
         if (!size) {
-          throw new Error('[RLottie] Failed to detect width from container');
+          throw new Error("[RLottie] Failed to detect width from container");
         }
       }
 
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d')!;
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d")!;
 
       canvas.style.width = `${size}px`;
       canvas.style.height = `${size}px`;
@@ -274,15 +282,17 @@ class RLottie {
       container.appendChild(canvas);
 
       this.containers.set(containerId, {
-        canvas, ctx, onLoad,
+        canvas,
+        ctx,
+        onLoad,
       });
     } else {
       if (!container.offsetParent) {
-        throw new Error('[RLottie] Shared canvas is not mounted');
+        throw new Error("[RLottie] Shared canvas is not mounted");
       }
 
       const canvas = container;
-      const ctx = canvas.getContext('2d')!;
+      const ctx = canvas.getContext("2d")!;
 
       ensureCanvasSize(canvas, sizeFactor);
 
@@ -315,7 +325,8 @@ class RLottie {
       isLowPriority,
       size,
       // Reduced quality only looks acceptable on big enough images
-      quality = isLowPriority && (!size || size > LOW_PRIORITY_QUALITY_SIZE_THRESHOLD)
+      quality = isLowPriority &&
+      (!size || size > LOW_PRIORITY_QUALITY_SIZE_THRESHOLD)
         ? LOW_PRIORITY_QUALITY
         : HIGH_PRIORITY_QUALITY,
     } = this.params;
@@ -348,7 +359,9 @@ class RLottie {
   private initConfig() {
     const { isLowPriority } = this.params;
 
-    this.cacheModulo = isLowPriority ? LOW_PRIORITY_CACHE_MODULO : HIGH_PRIORITY_CACHE_MODULO;
+    this.cacheModulo = isLowPriority
+      ? LOW_PRIORITY_CACHE_MODULO
+      : HIGH_PRIORITY_CACHE_MODULO;
   }
 
   setColor(newColor: [number, number, number] | undefined) {
@@ -359,7 +372,7 @@ class RLottie {
     this.workerIndex = cycleRestrict(MAX_WORKERS, ++lastWorkerIndex);
 
     workers[this.workerIndex].request({
-      name: 'init',
+      name: "init",
       args: [
         this.id,
         this.tgsUrl,
@@ -373,12 +386,16 @@ class RLottie {
 
   private destroyRenderer() {
     workers[this.workerIndex].request({
-      name: 'destroy',
+      name: "destroy",
       args: [this.id],
     });
   }
 
-  private onRendererInit(reduceFactor: number, msPerFrame: number, framesCount: number) {
+  private onRendererInit(
+    reduceFactor: number,
+    msPerFrame: number,
+    framesCount: number
+  ) {
     this.isRendererInited = true;
     this.reduceFactor = reduceFactor;
     this.msPerFrame = msPerFrame;
@@ -395,7 +412,7 @@ class RLottie {
     this.initConfig();
 
     workers[this.workerIndex].request({
-      name: 'changeData',
+      name: "changeData",
       args: [
         this.id,
         this.tgsUrl,
@@ -405,7 +422,11 @@ class RLottie {
     });
   }
 
-  private onChangeData(reduceFactor: number, msPerFrame: number, framesCount: number) {
+  private onChangeData(
+    reduceFactor: number,
+    msPerFrame: number,
+    framesCount: number
+  ) {
     this.reduceFactor = reduceFactor;
     this.msPerFrame = msPerFrame;
     this.framesCount = framesCount;
@@ -443,7 +464,9 @@ class RLottie {
 
       // Paused from outside
       if (!this.isAnimating) {
-        const areAllLoaded = Array.from(this.containers.values()).every(({ isLoaded }) => isLoaded);
+        const areAllLoaded = Array.from(this.containers.values()).every(
+          ({ isLoaded }) => isLoaded
+        );
         if (areAllLoaded) {
           return false;
         }
@@ -468,7 +491,11 @@ class RLottie {
       if (frameIndex !== this.prevFrameIndex) {
         this.containers.forEach((containerData) => {
           const {
-            ctx, isLoaded, isPaused, coords: { x, y } = {}, onLoad,
+            ctx,
+            isLoaded,
+            isPaused,
+            coords: { x, y } = {},
+            onLoad,
           } = containerData;
 
           if (!isLoaded || !isPaused) {
@@ -486,14 +513,20 @@ class RLottie {
       }
 
       const now = Date.now();
-      const currentSpeed = this.lastRenderAt ? this.msPerFrame / (now - this.lastRenderAt) : 1;
+      const currentSpeed = this.lastRenderAt
+        ? this.msPerFrame / (now - this.lastRenderAt)
+        : 1;
       const delta = Math.min(1, (this.direction * this.speed) / currentSpeed);
       const expectedNextFrameIndex = Math.round(this.approxFrameIndex + delta);
 
       this.lastRenderAt = now;
 
       // Forward animation finished
-      if (delta > 0 && (frameIndex === this.framesCount! - 1 || expectedNextFrameIndex > this.framesCount! - 1)) {
+      if (
+        delta > 0 &&
+        (frameIndex === this.framesCount! - 1 ||
+          expectedNextFrameIndex > this.framesCount! - 1)
+      ) {
         if (this.params.noLoop) {
           this.isAnimating = false;
           this.isEnded = true;
@@ -505,7 +538,10 @@ class RLottie {
         this.approxFrameIndex = 0;
 
         // Backward animation finished
-      } else if (delta < 0 && (frameIndex === 0 || expectedNextFrameIndex < 0)) {
+      } else if (
+        delta < 0 &&
+        (frameIndex === 0 || expectedNextFrameIndex < 0)
+      ) {
         if (this.params.noLoop) {
           this.isAnimating = false;
           this.isEnded = true;
@@ -518,12 +554,10 @@ class RLottie {
 
         // Stop frame reached
       } else if (
-        this.stopFrameIndex !== undefined
-        && (frameIndex === this.stopFrameIndex
-          || (
-            (delta > 0 && expectedNextFrameIndex > this.stopFrameIndex)
-            || (delta < 0 && expectedNextFrameIndex < this.stopFrameIndex)
-          ))
+        this.stopFrameIndex !== undefined &&
+        (frameIndex === this.stopFrameIndex ||
+          (delta > 0 && expectedNextFrameIndex > this.stopFrameIndex) ||
+          (delta < 0 && expectedNextFrameIndex < this.stopFrameIndex))
       ) {
         this.stopFrameIndex = undefined;
         this.isAnimating = false;
@@ -555,7 +589,7 @@ class RLottie {
     this.frames[frameIndex] = WAITING;
 
     workers[this.workerIndex].request({
-      name: 'renderFrames',
+      name: "renderFrames",
       args: [this.id, frameIndex, this.onFrameLoad.bind(this)],
     });
   }

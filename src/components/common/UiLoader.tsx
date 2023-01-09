@@ -1,45 +1,48 @@
-import React, { useEffect } from '../../lib/teact/teact';
-import { getActions, getGlobal, withGlobal } from '../../global';
+import React, { useEffect } from "../../lib/teact/teact";
+import { getActions, getGlobal, withGlobal } from "../../global";
 
-import { ApiMediaFormat } from '../../api/types';
-import type { GlobalState } from '../../global/types';
-import type { ThemeKey } from '../../types';
-import type { FC } from '../../lib/teact/teact';
+import { ApiMediaFormat } from "../../api/types";
+import type { GlobalState } from "../../global/types";
+import type { ThemeKey } from "../../types";
+import type { FC } from "../../lib/teact/teact";
 
-import { getChatAvatarHash } from '../../global/helpers/chats'; // Direct import for better module splitting
-import { selectIsRightColumnShown, selectTheme } from '../../global/selectors';
-import { DARK_THEME_BG_COLOR, LIGHT_THEME_BG_COLOR } from '../../config';
-import useFlag from '../../hooks/useFlag';
-import useShowTransition from '../../hooks/useShowTransition';
-import { pause } from '../../util/schedulers';
-import { preloadImage } from '../../util/files';
-import preloadFonts from '../../util/fonts';
-import * as mediaLoader from '../../util/mediaLoader';
-import { Bundles, loadModule } from '../../util/moduleLoader';
-import buildClassName from '../../util/buildClassName';
+import { getChatAvatarHash } from "../../global/helpers/chats"; // Direct import for better module splitting
+import { selectIsRightColumnShown, selectTheme } from "../../global/selectors";
+import { DARK_THEME_BG_COLOR, LIGHT_THEME_BG_COLOR } from "../../config";
+import useFlag from "../../hooks/useFlag";
+import useShowTransition from "../../hooks/useShowTransition";
+import { pause } from "../../util/schedulers";
+import { preloadImage } from "../../util/files";
+import preloadFonts from "../../util/fonts";
+import * as mediaLoader from "../../util/mediaLoader";
+import { Bundles, loadModule } from "../../util/moduleLoader";
+import buildClassName from "../../util/buildClassName";
 
-import styles from './UiLoader.module.scss';
+import styles from "./UiLoader.module.scss";
 
-import telegramLogoPath from '../../assets/telegram-logo.svg';
-import reactionThumbsPath from '../../assets/reaction-thumbs.png';
-import lockPreviewPath from '../../assets/lock.png';
-import monkeyPath from '../../assets/monkey.svg';
+import telegramLogoPath from "../../assets/telegram-logo.svg";
+import reactionThumbsPath from "../../assets/reaction-thumbs.png";
+import lockPreviewPath from "../../assets/lock.png";
+import monkeyPath from "../../assets/monkey.svg";
 
 export type UiLoaderPage =
-  'main'
-  | 'lock'
-  | 'inactive'
-  | 'authCode'
-  | 'authPassword'
-  | 'authPhoneNumber'
-  | 'authQrCode';
+  | "main"
+  | "lock"
+  | "inactive"
+  | "authCode"
+  | "authPassword"
+  | "authPhoneNumber"
+  | "authQrCode";
 
 type OwnProps = {
   page?: UiLoaderPage;
   children: React.ReactNode;
 };
 
-type StateProps = Pick<GlobalState, 'uiReadyState' | 'shouldSkipHistoryAnimations'> & {
+type StateProps = Pick<
+  GlobalState,
+  "uiReadyState" | "shouldSkipHistoryAnimations"
+> & {
   isRightColumnShown?: boolean;
   leftColumnWidth?: number;
   theme: ThemeKey;
@@ -55,41 +58,37 @@ function preloadAvatars() {
     return undefined;
   }
 
-  return Promise.all(listIds.active.slice(0, AVATARS_TO_PRELOAD).map((chatId) => {
-    const chat = byId[chatId];
-    if (!chat) {
-      return undefined;
-    }
+  return Promise.all(
+    listIds.active.slice(0, AVATARS_TO_PRELOAD).map((chatId) => {
+      const chat = byId[chatId];
+      if (!chat) {
+        return undefined;
+      }
 
-    const avatarHash = getChatAvatarHash(chat);
-    if (!avatarHash) {
-      return undefined;
-    }
+      const avatarHash = getChatAvatarHash(chat);
+      if (!avatarHash) {
+        return undefined;
+      }
 
-    return mediaLoader.fetch(avatarHash, ApiMediaFormat.BlobUrl);
-  }));
+      return mediaLoader.fetch(avatarHash, ApiMediaFormat.BlobUrl);
+    })
+  );
 }
 
 const preloadTasks = {
-  main: () => Promise.all([
-    loadModule(Bundles.Main, 'Main')
-      .then(preloadFonts),
-    preloadAvatars(),
-    preloadImage(reactionThumbsPath),
-  ]),
-  authPhoneNumber: () => Promise.all([
-    preloadFonts(),
-    preloadImage(telegramLogoPath),
-  ]),
+  main: () =>
+    Promise.all([
+      loadModule(Bundles.Main, "Main").then(preloadFonts),
+      preloadAvatars(),
+      preloadImage(reactionThumbsPath),
+    ]),
+  authPhoneNumber: () =>
+    Promise.all([preloadFonts(), preloadImage(telegramLogoPath)]),
   authCode: () => preloadImage(monkeyPath),
   authPassword: () => preloadImage(monkeyPath),
   authQrCode: preloadFonts,
-  lock: () => Promise.all([
-    preloadFonts(),
-    preloadImage(lockPreviewPath),
-  ]),
-  inactive: () => {
-  },
+  lock: () => Promise.all([preloadFonts(), preloadImage(lockPreviewPath)]),
+  inactive: () => {},
 };
 
 const UiLoader: FC<OwnProps & StateProps> = ({
@@ -103,9 +102,8 @@ const UiLoader: FC<OwnProps & StateProps> = ({
   const { setIsUiReady } = getActions();
 
   const [isReady, markReady] = useFlag();
-  const {
-    shouldRender: shouldRenderMask, transitionClassNames,
-  } = useShowTransition(!isReady, undefined, true);
+  const { shouldRender: shouldRenderMask, transitionClassNames } =
+    useShowTransition(!isReady, undefined, true);
 
   useEffect(() => {
     let timeout: number | undefined;
@@ -145,21 +143,25 @@ const UiLoader: FC<OwnProps & StateProps> = ({
     <div
       id="UiLoader"
       className={styles.bg}
-      style={`--theme-background-color: ${theme === 'dark' ? DARK_THEME_BG_COLOR : LIGHT_THEME_BG_COLOR}`}
+      style={`--theme-background-color: ${
+        theme === "dark" ? DARK_THEME_BG_COLOR : LIGHT_THEME_BG_COLOR
+      }`}
     >
       {children}
       {shouldRenderMask && !shouldSkipHistoryAnimations && Boolean(page) && (
         <div className={buildClassName(styles.mask, transitionClassNames)}>
-          {page === 'main' ? (
+          {page === "main" ? (
             <div className={styles.main}>
               <div
                 className={styles.left}
-                style={leftColumnWidth ? `width: ${leftColumnWidth}px` : undefined}
+                style={
+                  leftColumnWidth ? `width: ${leftColumnWidth}px` : undefined
+                }
               />
               <div className={buildClassName(styles.middle, styles.bg)} />
               {isRightColumnShown && <div className={styles.right} />}
             </div>
-          ) : (page === 'inactive' || page === 'lock') ? (
+          ) : page === "inactive" || page === "lock" ? (
             <div className={buildClassName(styles.blank, styles.bg)} />
           ) : (
             <div className={styles.blank} />
@@ -170,16 +172,14 @@ const UiLoader: FC<OwnProps & StateProps> = ({
   );
 };
 
-export default withGlobal<OwnProps>(
-  (global): StateProps => {
-    const theme = selectTheme(global);
+export default withGlobal<OwnProps>((global): StateProps => {
+  const theme = selectTheme(global);
 
-    return {
-      shouldSkipHistoryAnimations: global.shouldSkipHistoryAnimations,
-      uiReadyState: global.uiReadyState,
-      isRightColumnShown: selectIsRightColumnShown(global),
-      leftColumnWidth: global.leftColumnWidth,
-      theme,
-    };
-  },
-)(UiLoader);
+  return {
+    shouldSkipHistoryAnimations: global.shouldSkipHistoryAnimations,
+    uiReadyState: global.uiReadyState,
+    isRightColumnShown: selectIsRightColumnShown(global),
+    leftColumnWidth: global.leftColumnWidth,
+    theme,
+  };
+})(UiLoader);

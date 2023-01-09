@@ -1,30 +1,30 @@
-import type { FC } from './lib/teact/teact';
-import React, { useEffect } from './lib/teact/teact';
-import { getActions, withGlobal } from './global';
+import type { FC } from "./lib/teact/teact";
+import React, { useEffect } from "./lib/teact/teact";
+import { getActions, withGlobal } from "./global";
 
-import type { GlobalState } from './global/types';
-import type { UiLoaderPage } from './components/common/UiLoader';
+import type { GlobalState } from "./global/types";
+import type { UiLoaderPage } from "./components/common/UiLoader";
 
-import { INACTIVE_MARKER, PAGE_TITLE } from './config';
-import { PLATFORM_ENV } from './util/environment';
-import { updateSizes } from './util/windowSize';
-import { addActiveTabChangeListener } from './util/activeTabMonitor';
-import { hasStoredSession } from './util/sessions';
-import buildClassName from './util/buildClassName';
-import useFlag from './hooks/useFlag';
-import usePrevious from './hooks/usePrevious';
+import { INACTIVE_MARKER, PAGE_TITLE } from "./config";
+import { PLATFORM_ENV } from "./util/environment";
+import { updateSizes } from "./util/windowSize";
+import { addActiveTabChangeListener } from "./util/activeTabMonitor";
+import { hasStoredSession } from "./util/sessions";
+import buildClassName from "./util/buildClassName";
+import useFlag from "./hooks/useFlag";
+import usePrevious from "./hooks/usePrevious";
 
-import Auth from './components/auth/Auth';
-import Main from './components/main/Main.async';
-import LockScreen from './components/main/LockScreen.async';
-import AppInactive from './components/main/AppInactive';
-import Transition from './components/ui/Transition';
-import UiLoader from './components/common/UiLoader';
-import { parseInitialLocationHash } from './util/routing';
+import Auth from "./components/auth/Auth";
+import Main from "./components/main/Main.async";
+import LockScreen from "./components/main/LockScreen.async";
+import AppInactive from "./components/main/AppInactive";
+import Transition from "./components/ui/Transition";
+import UiLoader from "./components/common/UiLoader";
+import { parseInitialLocationHash } from "./util/routing";
 // import Test from './components/test/TestNoRedundancy';
 
 type StateProps = {
-  authState: GlobalState['authState'];
+  authState: GlobalState["authState"];
   isScreenLocked?: boolean;
   hasPasscode?: boolean;
   hasWebAuthTokenFailed?: boolean;
@@ -46,7 +46,7 @@ const App: FC<StateProps> = ({
   const { disconnect } = getActions();
 
   const [isInactive, markInactive] = useFlag(false);
-  const isMobile = PLATFORM_ENV === 'iOS' || PLATFORM_ENV === 'Android';
+  const isMobile = PLATFORM_ENV === "iOS" || PLATFORM_ENV === "Android";
 
   useEffect(() => {
     updateSizes();
@@ -65,22 +65,22 @@ const App: FC<StateProps> = ({
       e.preventDefault();
       if (!e.dataTransfer) return;
       if (!(e.target as HTMLElement).dataset.dropzone) {
-        e.dataTransfer.dropEffect = 'none';
+        e.dataTransfer.dropEffect = "none";
       } else {
-        e.dataTransfer.dropEffect = 'copy';
+        e.dataTransfer.dropEffect = "copy";
       }
     };
     const handleDrop = (e: DragEvent) => {
       e.preventDefault();
     };
-    body.addEventListener('drop', handleDrop);
-    body.addEventListener('dragover', handleDrag);
-    body.addEventListener('dragenter', handleDrag);
+    body.addEventListener("drop", handleDrop);
+    body.addEventListener("dragover", handleDrag);
+    body.addEventListener("dragenter", handleDrag);
 
     return () => {
-      body.removeEventListener('drop', handleDrop);
-      body.removeEventListener('dragover', handleDrag);
-      body.removeEventListener('dragenter', handleDrag);
+      body.removeEventListener("drop", handleDrop);
+      body.removeEventListener("dragover", handleDrag);
+      body.removeEventListener("dragenter", handleDrag);
     };
   }, []);
 
@@ -92,53 +92,55 @@ const App: FC<StateProps> = ({
   if (isInactive) {
     activeKey = AppScreens.inactive;
   } else if (isScreenLocked) {
-    page = 'lock';
+    page = "lock";
     activeKey = AppScreens.lock;
   } else if (authState) {
     switch (authState) {
-      case 'authorizationStateWaitPhoneNumber':
-        page = 'authPhoneNumber';
+      case "authorizationStateWaitPhoneNumber":
+        page = "authPhoneNumber";
         activeKey = AppScreens.auth;
         break;
-      case 'authorizationStateWaitCode':
-        page = 'authCode';
+      case "authorizationStateWaitCode":
+        page = "authCode";
         activeKey = AppScreens.auth;
         break;
-      case 'authorizationStateWaitPassword':
-        page = 'authPassword';
+      case "authorizationStateWaitPassword":
+        page = "authPassword";
         activeKey = AppScreens.auth;
         break;
-      case 'authorizationStateWaitRegistration':
+      case "authorizationStateWaitRegistration":
         activeKey = AppScreens.auth;
         break;
-      case 'authorizationStateWaitQrCode':
-        page = 'authQrCode';
+      case "authorizationStateWaitQrCode":
+        page = "authQrCode";
         activeKey = AppScreens.auth;
         break;
-      case 'authorizationStateClosed':
-      case 'authorizationStateClosing':
-      case 'authorizationStateLoggingOut':
-      case 'authorizationStateReady':
-        page = 'main';
+      case "authorizationStateClosed":
+      case "authorizationStateClosing":
+      case "authorizationStateLoggingOut":
+      case "authorizationStateReady":
+        page = "main";
         activeKey = AppScreens.main;
         break;
     }
   } else if (hasStoredSession(true)) {
-    page = 'main';
+    page = "main";
     activeKey = AppScreens.main;
   } else if (hasPasscode) {
     activeKey = AppScreens.lock;
   } else {
-    page = isMobile ? 'authPhoneNumber' : 'authQrCode';
+    page = isMobile ? "authPhoneNumber" : "authQrCode";
     activeKey = AppScreens.auth;
   }
 
-  if (activeKey !== AppScreens.lock
-    && activeKey !== AppScreens.inactive
-    && activeKey !== AppScreens.main
-    && parseInitialLocationHash()?.tgWebAuthToken
-    && !hasWebAuthTokenFailed) {
-    page = 'main';
+  if (
+    activeKey !== AppScreens.lock &&
+    activeKey !== AppScreens.inactive &&
+    activeKey !== AppScreens.main &&
+    parseInitialLocationHash()?.tgWebAuthToken &&
+    !hasWebAuthTokenFailed
+  ) {
+    page = "main";
     activeKey = AppScreens.main;
   }
 
@@ -165,8 +167,10 @@ const App: FC<StateProps> = ({
         activeKey={activeKey}
         shouldCleanup
         className={buildClassName(
-          'full-height',
-          (activeKey === AppScreens.auth || prevActiveKey === AppScreens.auth) && 'is-auth',
+          "full-height",
+          (activeKey === AppScreens.auth ||
+            prevActiveKey === AppScreens.auth) &&
+            "is-auth"
         )}
       >
         {renderContent}
@@ -175,13 +179,12 @@ const App: FC<StateProps> = ({
   );
 };
 
-export default withGlobal(
-  (global): StateProps => {
-    return {
-      authState: global.authState,
-      isScreenLocked: global.passcode?.isScreenLocked,
-      hasPasscode: global.passcode?.hasPasscode,
-      hasWebAuthTokenFailed: global.hasWebAuthTokenFailed || global.hasWebAuthTokenPasswordRequired,
-    };
-  },
-)(App);
+export default withGlobal((global): StateProps => {
+  return {
+    authState: global.authState,
+    isScreenLocked: global.passcode?.isScreenLocked,
+    hasPasscode: global.passcode?.hasPasscode,
+    hasWebAuthTokenFailed:
+      global.hasWebAuthTokenFailed || global.hasWebAuthTokenPasswordRequired,
+  };
+})(App);

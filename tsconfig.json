@@ -2,12 +2,7 @@
   "compilerOptions": {
     // We don't care about this since Webpack runs Babel after TypeScript
     "target": "esnext",
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "webworker",
-      "es2019"
-    ],
+    "lib": ["dom", "dom.iterable", "webworker", "ES6"],
     "allowJs": true,
     "skipLibCheck": true,
     "esModuleInterop": true,
@@ -19,12 +14,15 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
-    "jsx": "react"
+    "jsx": "react",
+    "types": ["vite/client", "node"]
   },
   "include": [
     "src",
     "tests",
     "plugins",
     "dev",
+    "serviceWorker.ts",
+    "serviceWorker.ts"
   ]
 }

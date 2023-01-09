@@ -1,5 +1,9 @@
-import type { CancellableCallback, OriginMessageEvent, WorkerMessageData } from './WorkerConnector';
-import { DEBUG } from '../config';
+import type {
+  CancellableCallback,
+  OriginMessageEvent,
+  WorkerMessageData,
+} from "./WorkerConnector";
+import { DEBUG } from "../config";
 
 declare const self: WorkerGlobalScope;
 
@@ -12,20 +16,22 @@ export default function createInterface(api: Record<string, Function>) {
     const { data } = message;
 
     switch (data.type) {
-      case 'callMethod': {
-        const {
-          messageId, name, args, withCallback,
-        } = data;
+      case "callMethod": {
+        const { messageId, name, args, withCallback } = data;
+
         try {
           if (messageId && withCallback) {
             const callback = (...callbackArgs: any[]) => {
               const lastArg = callbackArgs[callbackArgs.length - 1];
 
-              sendToOrigin({
-                type: 'methodCallback',
-                messageId,
-                callbackArgs,
-              }, isTransferable(lastArg) ? [lastArg] : undefined);
+              sendToOrigin(
+                {
+                  type: "methodCallback",
+                  messageId,
+                  callbackArgs,
+                },
+                isTransferable(lastArg) ? [lastArg] : undefined
+              );
             };
 
             callbackState.set(messageId, callback);
@@ -38,11 +44,11 @@ export default function createInterface(api: Record<string, Function>) {
           if (messageId) {
             sendToOrigin(
               {
-                type: 'methodResponse',
+                type: "methodResponse",
                 messageId,
                 response,
               },
-              arrayBuffers,
+              arrayBuffers
             );
           }
         } catch (error: any) {
@@ -53,7 +59,7 @@ export default function createInterface(api: Record<string, Function>) {
 
           if (messageId) {
             sendToOrigin({
-              type: 'methodResponse',
+              type: "methodResponse",
               messageId,
               error: { message: error.message },
             });
@@ -66,7 +72,7 @@ export default function createInterface(api: Record<string, Function>) {
 
         break;
       }
-      case 'cancelProgress': {
+      case "cancelProgress": {
         const callback = callbackState.get(data.messageId);
         if (callback) {
           callback.isCanceled = true;
@@ -86,13 +92,19 @@ function handleErrors() {
   self.onerror = (e) => {
     // eslint-disable-next-line no-console
     console.error(e);
-    sendToOrigin({ type: 'unhandledError', error: { message: e.error.message || 'Uncaught exception in worker' } });
+    sendToOrigin({
+      type: "unhandledError",
+      error: { message: e.error.message || "Uncaught exception in worker" },
+    });
   };
 
-  self.addEventListener('unhandledrejection', (e) => {
+  self.addEventListener("unhandledrejection", (e) => {
     // eslint-disable-next-line no-console
     console.error(e);
-    sendToOrigin({ type: 'unhandledError', error: { message: e.reason.message || 'Uncaught rejection in worker' } });
+    sendToOrigin({
+      type: "unhandledError",
+      error: { message: e.reason.message || "Uncaught rejection in worker" },
+    });
   });
 }
 

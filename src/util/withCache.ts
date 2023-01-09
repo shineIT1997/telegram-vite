@@ -3,7 +3,7 @@ const cache = new WeakMap<AnyFunction, Map<string, any>>();
 export default function withCache<T extends AnyFunction>(fn: T) {
   return (...args: Parameters<T>): ReturnType<T> => {
     let fnCache = cache.get(fn);
-    const cacheKey = args.map(String).join('_');
+    const cacheKey = args.map(String).join("_");
 
     if (fnCache) {
       const cached = fnCache.get(cacheKey);

@@ -1,6 +1,6 @@
 declare const process: NodeJS.Process;
 
-declare module '*.module.scss';
+declare module "*.module.scss";
 
 declare const APP_REVISION: string;
 
@@ -58,22 +58,19 @@ type EmojiWithSkins = Record<number, Emoji>;
 type AllEmojis = Record<string, Emoji | EmojiWithSkins>;
 
 // Declare supported for import formats as modules
-declare module '*.png';
-declare module '*.svg';
-declare module '*.tgs';
+declare module "*.png";
+declare module "*.svg";
+declare module "*.tgs";
 
-declare module '*.txt' {
+declare module "*.txt" {
   const content: string;
   export default content;
 }
 
-declare module 'pako/dist/pako_inflate' {
-  function inflate(...args: any[]): string;
-}
-
-declare module 'opus-recorder' {
-  export interface IOpusRecorder extends Omit<MediaRecorder, 'start' | 'ondataavailable'> {
-    new(options: AnyLiteral): IOpusRecorder;
+declare module "opus-recorder" {
+  export interface IOpusRecorder
+    extends Omit<MediaRecorder, "start" | "ondataavailable"> {
+    new (options: AnyLiteral): IOpusRecorder;
 
     start(stream?: MediaStreamAudioSourceNode): void;
 
@@ -118,25 +115,31 @@ interface Navigator {
 
 // Fix to make Boolean() work as !!
 // https://github.com/microsoft/TypeScript/issues/16655
-type Falsy = false | 0 | '' | null | undefined;
+type Falsy = false | 0 | "" | null | undefined;
 
 interface BooleanConstructor {
-  new<T>(value: T | Falsy): value is T;
+  new <T>(value: T | Falsy): value is T;
   <T>(value: T | Falsy): value is T;
   readonly prototype: Boolean;
 }
 
 interface Array<T> {
-  filter<S extends T>(predicate: BooleanConstructor, thisArg?: any): Exclude<S, Falsy>[];
+  filter<S extends T>(
+    predicate: BooleanConstructor,
+    thisArg?: any
+  ): Exclude<S, Falsy>[];
 }
 interface ReadonlyArray<T> {
-  filter<S extends T>(predicate: BooleanConstructor, thisArg?: any): Exclude<S, Falsy>[];
+  filter<S extends T>(
+    predicate: BooleanConstructor,
+    thisArg?: any
+  ): Exclude<S, Falsy>[];
 }
 
 // Missing type definitions for OPFS (Origin Private File System) API
 // https://github.com/WICG/file-system-access/blob/main/AccessHandle.md#accesshandle-idl
 interface FileSystemFileHandle extends FileSystemHandle {
-  readonly kind: 'file';
+  readonly kind: "file";
   getFile(): Promise<File>;
   createSyncAccessHandle(): Promise<FileSystemSyncAccessHandle>;
 }
@@ -147,7 +150,7 @@ interface FileSystemSyncAccessHandle {
 
   truncate: (size: number) => Promise<undefined>;
   getSize: () => Promise<number>;
-  flush: () => Promise<undefined> ;
+  flush: () => Promise<undefined>;
   close: () => Promise<undefined>;
 }
 

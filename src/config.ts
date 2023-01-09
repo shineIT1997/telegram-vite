@@ -1,57 +1,58 @@
-import type { ApiLimitType } from './global/types';
+import type { ApiLimitType } from "./global/types";
 
-export const APP_NAME = process.env.APP_NAME || 'Telegram WebZ';
-export const APP_VERSION = process.env.APP_VERSION!;
-export const RELEASE_DATETIME = process.env.RELEASE_DATETIME;
+export const APP_NAME = import.meta.env.APP_NAME || "Telegram WebZ";
+export const APP_VERSION = import.meta.env.APP_VERSION!;
+export const RELEASE_DATETIME = import.meta.env.RELEASE_DATETIME;
 
-export const PRODUCTION_HOSTNAME = 'web.telegram.org';
+export const PRODUCTION_HOSTNAME = "web.telegram.org";
 
-export const DEBUG = process.env.APP_ENV !== 'production';
+export const DEBUG = import.meta.env.APP_ENV !== "production";
 export const DEBUG_MORE = false;
 
-export const IS_MOCKED_CLIENT = process.env.APP_MOCKED_CLIENT === '1';
-export const IS_TEST = process.env.APP_ENV === 'test';
-export const IS_PERF = process.env.APP_ENV === 'perf';
-export const IS_BETA = process.env.APP_ENV === 'staging';
+export const IS_MOCKED_CLIENT = import.meta.env.APP_MOCKED_CLIENT === "1";
+export const IS_TEST = import.meta.env.APP_ENV === "test";
+export const IS_PERF = import.meta.env.APP_ENV === "perf";
+export const IS_BETA = import.meta.env.APP_ENV === "staging";
 
-export const BETA_CHANGELOG_URL = 'https://telegra.ph/WebZ-Beta-04-01';
+export const BETA_CHANGELOG_URL = "https://telegra.ph/WebZ-Beta-04-01";
 
-export const DEBUG_ALERT_MSG = 'Shoot!\nSomething went wrong, please see the error details in Dev Tools Console.';
+export const DEBUG_ALERT_MSG =
+  "Shoot!\nSomething went wrong, please see the error details in Dev Tools Console.";
 export const DEBUG_GRAMJS = false;
 
-export const PAGE_TITLE = 'Telegram';
-export const INACTIVE_MARKER = ' [Inactive]';
+export const PAGE_TITLE = "Telegram";
+export const INACTIVE_MARKER = " [Inactive]";
 
 export const DEBUG_PAYMENT_SMART_GLOCAL = false;
 
-export const SESSION_USER_KEY = 'user_auth';
-export const LEGACY_SESSION_KEY = 'GramJs:sessionId';
-export const PASSCODE_CACHE_NAME = 'tt-passcode';
+export const SESSION_USER_KEY = "user_auth";
+export const LEGACY_SESSION_KEY = "GramJs:sessionId";
+export const PASSCODE_CACHE_NAME = "tt-passcode";
 
 export const GLOBAL_STATE_CACHE_DISABLED = false;
-export const GLOBAL_STATE_CACHE_KEY = 'tt-global-state';
+export const GLOBAL_STATE_CACHE_KEY = "tt-global-state";
 export const GLOBAL_STATE_CACHE_USER_LIST_LIMIT = 500;
 export const GLOBAL_STATE_CACHE_CHAT_LIST_LIMIT = 200;
 export const GLOBAL_STATE_CACHE_CHATS_WITH_MESSAGES_LIMIT = 30;
 export const GLOBAL_STATE_CACHE_CUSTOM_EMOJI_LIMIT = 150;
 
 export const MEDIA_CACHE_DISABLED = false;
-export const MEDIA_CACHE_NAME = 'tt-media';
-export const MEDIA_CACHE_NAME_AVATARS = 'tt-media-avatars';
+export const MEDIA_CACHE_NAME = "tt-media";
+export const MEDIA_CACHE_NAME_AVATARS = "tt-media-avatars";
 export const MEDIA_PROGRESSIVE_CACHE_DISABLED = false;
-export const MEDIA_PROGRESSIVE_CACHE_NAME = 'tt-media-progressive';
+export const MEDIA_PROGRESSIVE_CACHE_NAME = "tt-media-progressive";
 export const CUSTOM_EMOJI_PREVIEW_CACHE_DISABLED = false;
-export const CUSTOM_EMOJI_PREVIEW_CACHE_NAME = 'tt-custom-emoji-preview';
+export const CUSTOM_EMOJI_PREVIEW_CACHE_NAME = "tt-custom-emoji-preview";
 export const MEDIA_CACHE_MAX_BYTES = 512 * 1024; // 512 KB
-export const CUSTOM_BG_CACHE_NAME = 'tt-custom-bg';
-export const LANG_CACHE_NAME = 'tt-lang-packs-v15';
-export const ASSET_CACHE_NAME = 'tt-assets';
+export const CUSTOM_BG_CACHE_NAME = "tt-custom-bg";
+export const LANG_CACHE_NAME = "tt-lang-packs-v15";
+export const ASSET_CACHE_NAME = "tt-assets";
 export const AUTODOWNLOAD_FILESIZE_MB_LIMITS = [1, 5, 10, 50, 100, 500];
 
 export const DOWNLOAD_WORKERS = 16;
 export const UPLOAD_WORKERS = 16;
 
-const isBigScreen = typeof window !== 'undefined' && window.innerHeight >= 900;
+const isBigScreen = typeof window !== "undefined" && window.innerHeight >= 900;
 
 export const MIN_PASSWORD_LENGTH = 1;
 
@@ -98,14 +99,14 @@ export const SEND_MESSAGE_ACTION_INTERVAL = 3000; // 3s
 // 10000s from https://corefork.telegram.org/api/url-authorization#automatic-authorization
 export const APP_CONFIG_REFETCH_INTERVAL = 10000 * 1000;
 
-export const EDITABLE_INPUT_ID = 'editable-message-text';
-export const EDITABLE_INPUT_MODAL_ID = 'editable-message-text-modal';
+export const EDITABLE_INPUT_ID = "editable-message-text";
+export const EDITABLE_INPUT_MODAL_ID = "editable-message-text-modal";
 // eslint-disable-next-line max-len
 export const EDITABLE_INPUT_CSS_SELECTOR = `.messages-layout .Transition__slide--active #${EDITABLE_INPUT_ID}, .messages-layout .Transition > .to #${EDITABLE_INPUT_ID}`;
 
-export const CUSTOM_APPENDIX_ATTRIBUTE = 'data-has-custom-appendix';
-export const MESSAGE_CONTENT_CLASS_NAME = 'message-content';
-export const MESSAGE_CONTENT_SELECTOR = '.message-content';
+export const CUSTOM_APPENDIX_ATTRIBUTE = "data-has-custom-appendix";
+export const MESSAGE_CONTENT_CLASS_NAME = "message-content";
+export const MESSAGE_CONTENT_SELECTOR = ".message-content";
 
 // Screen width where Pinned Message / Audio Player in the Middle Header can be safely displayed
 export const SAFE_SCREEN_WIDTH_FOR_STATIC_RIGHT_COLUMN = 1440; // px
@@ -121,7 +122,7 @@ export const MOBILE_SCREEN_LANDSCAPE_MAX_HEIGHT = 450; // px
 
 export const LOCAL_MESSAGE_MIN_ID = 1e11; // `Date.now()` is always used as base
 export const MAX_INT_32 = 2 ** 31 - 1;
-export const TMP_CHAT_ID = '0';
+export const TMP_CHAT_ID = "0";
 
 export const ANIMATION_END_DELAY = 100;
 
@@ -131,9 +132,15 @@ export const FAST_SMOOTH_MAX_DURATION = 600;
 export const FAST_SMOOTH_SHORT_TRANSITION_MAX_DISTANCE = 500; // px
 
 // Average duration of message sending animation
-export const API_UPDATE_THROTTLE = Math.round((FAST_SMOOTH_MIN_DURATION + FAST_SMOOTH_MAX_DURATION) / 2);
+export const API_UPDATE_THROTTLE = Math.round(
+  (FAST_SMOOTH_MIN_DURATION + FAST_SMOOTH_MAX_DURATION) / 2
+);
 export const API_THROTTLE_RESET_UPDATES = new Set([
-  'newMessage', 'newScheduledMessage', 'deleteMessages', 'deleteScheduledMessages', 'deleteHistory',
+  "newMessage",
+  "newScheduledMessage",
+  "deleteMessages",
+  "deleteScheduledMessages",
+  "deleteHistory",
 ]);
 
 export const LOCK_SCREEN_ANIMATION_DURATION_MS = 200;
@@ -161,38 +168,41 @@ export const STICKER_SIZE_INVITES = 140;
 export const RECENT_STICKERS_LIMIT = 20;
 export const EMOJI_STATUS_LOOP_LIMIT = 2;
 export const EMOJI_SIZES = 7;
-export const RECENT_SYMBOL_SET_ID = 'recent';
-export const FAVORITE_SYMBOL_SET_ID = 'favorite';
-export const CHAT_STICKER_SET_ID = 'chatStickers';
-export const PREMIUM_STICKER_SET_ID = 'premium';
-export const EMOJI_IMG_REGEX = /<img[^>]+alt="([^"]+)"(?![^>]*data-document-id)[^>]*>/gm;
+export const RECENT_SYMBOL_SET_ID = "recent";
+export const FAVORITE_SYMBOL_SET_ID = "favorite";
+export const CHAT_STICKER_SET_ID = "chatStickers";
+export const PREMIUM_STICKER_SET_ID = "premium";
+export const EMOJI_IMG_REGEX =
+  /<img[^>]+alt="([^"]+)"(?![^>]*data-document-id)[^>]*>/gm;
 
-export const BASE_EMOJI_KEYWORD_LANG = 'en';
+export const BASE_EMOJI_KEYWORD_LANG = "en";
 
 export const MENU_TRANSITION_DURATION = 200;
 export const SLIDE_TRANSITION_DURATION = 450;
 
-export const VIDEO_MOV_TYPE = 'video/quicktime';
-export const VIDEO_WEBM_TYPE = 'video/webm';
+export const VIDEO_MOV_TYPE = "video/quicktime";
+export const VIDEO_WEBM_TYPE = "video/webm";
 
 export const SUPPORTED_IMAGE_CONTENT_TYPES = new Set([
-  'image/png', 'image/gif', 'image/jpeg',
+  "image/png",
+  "image/gif",
+  "image/jpeg",
 ]);
 
 export const SUPPORTED_VIDEO_CONTENT_TYPES = new Set([
-  'video/mp4', // video/quicktime added dynamically in environment.ts
+  "video/mp4", // video/quicktime added dynamically in environment.ts
 ]);
 
 export const SUPPORTED_AUDIO_CONTENT_TYPES = new Set([
-  'audio/mp3',
-  'audio/ogg',
-  'audio/wav',
-  'audio/mpeg',
-  'audio/flac',
-  'audio/aac',
-  'audio/m4a',
-  'audio/mp4',
-  'audio/x-m4a',
+  "audio/mp3",
+  "audio/ogg",
+  "audio/wav",
+  "audio/mpeg",
+  "audio/flac",
+  "audio/aac",
+  "audio/m4a",
+  "audio/mp4",
+  "audio/x-m4a",
 ]);
 
 export const CONTENT_TYPES_WITH_PREVIEW = new Set([
@@ -200,43 +210,65 @@ export const CONTENT_TYPES_WITH_PREVIEW = new Set([
   ...SUPPORTED_VIDEO_CONTENT_TYPES,
 ]);
 
-export const CONTENT_NOT_SUPPORTED = 'The message is not supported on this version of Telegram.';
+export const CONTENT_NOT_SUPPORTED =
+  "The message is not supported on this version of Telegram.";
 
 // eslint-disable-next-line max-len
-export const RE_LINK_TEMPLATE = '((ftp|https?):\\/\\/)?((www\\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\\.[a-zA-Z0-9()]{1,63})\\b([-a-zA-Z0-9()@:%_+.~#?&/=]*)';
-export const RE_MENTION_TEMPLATE = '(@[\\w\\d_-]+)';
+export const RE_LINK_TEMPLATE =
+  "((ftp|https?):\\/\\/)?((www\\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\\.[a-zA-Z0-9()]{1,63})\\b([-a-zA-Z0-9()@:%_+.~#?&/=]*)";
+export const RE_MENTION_TEMPLATE = "(@[\\w\\d_-]+)";
 export const RE_TG_LINK = /^tg:(\/\/)?/;
-export const RE_TME_LINK = /^(https?:\/\/)?([-a-zA-Z0-9@:%_+~#=]{1,32}\.)?t\.me/;
+export const RE_TME_LINK =
+  /^(https?:\/\/)?([-a-zA-Z0-9@:%_+~#=]{1,32}\.)?t\.me/;
 export const RE_TELEGRAM_LINK = /^(https?:\/\/)?telegram\.org\//;
-export const TME_LINK_PREFIX = 'https://t.me/';
-export const USERNAME_PURCHASE_ERROR = 'USERNAME_PURCHASE_AVAILABLE';
-export const PURCHASE_USERNAME = 'auction';
+export const TME_LINK_PREFIX = "https://t.me/";
+export const USERNAME_PURCHASE_ERROR = "USERNAME_PURCHASE_AVAILABLE";
+export const PURCHASE_USERNAME = "auction";
 
 // eslint-disable-next-line max-len
-export const COUNTRIES_WITH_12H_TIME_FORMAT = new Set(['AU', 'BD', 'CA', 'CO', 'EG', 'HN', 'IE', 'IN', 'JO', 'MX', 'MY', 'NI', 'NZ', 'PH', 'PK', 'SA', 'SV', 'US']);
+export const COUNTRIES_WITH_12H_TIME_FORMAT = new Set([
+  "AU",
+  "BD",
+  "CA",
+  "CO",
+  "EG",
+  "HN",
+  "IE",
+  "IN",
+  "JO",
+  "MX",
+  "MY",
+  "NI",
+  "NZ",
+  "PH",
+  "PK",
+  "SA",
+  "SV",
+  "US",
+]);
 
-export const API_CHAT_TYPES = ['bots', 'channels', 'chats', 'users'] as const;
+export const API_CHAT_TYPES = ["bots", "channels", "chats", "users"] as const;
 
 // MTProto constants
-export const SERVICE_NOTIFICATIONS_USER_ID = '777000';
-export const REPLIES_USER_ID = '1271266957'; // TODO For Test connection ID must be equal to 708513
-export const RESTRICTED_EMOJI_SET_ID = '7173162320003080';
-export const DEFAULT_GIF_SEARCH_BOT_USERNAME = 'gif';
+export const SERVICE_NOTIFICATIONS_USER_ID = "777000";
+export const REPLIES_USER_ID = "1271266957"; // TODO For Test connection ID must be equal to 708513
+export const RESTRICTED_EMOJI_SET_ID = "7173162320003080";
+export const DEFAULT_GIF_SEARCH_BOT_USERNAME = "gif";
 export const ALL_FOLDER_ID = 0;
 export const ARCHIVED_FOLDER_ID = 1;
-export const DELETED_COMMENTS_CHANNEL_ID = '-777';
+export const DELETED_COMMENTS_CHANNEL_ID = "-777";
 export const MAX_MEDIA_FILES_FOR_ALBUM = 10;
 export const MAX_ACTIVE_PINNED_CHATS = 5;
-export const SCHEDULED_WHEN_ONLINE = 0x7FFFFFFE;
-export const DEFAULT_LANG_CODE = 'en';
-export const DEFAULT_LANG_PACK = 'android';
-export const LANG_PACKS = ['android', 'ios', 'tdesktop', 'macos'] as const;
-export const FEEDBACK_URL = 'https://bugs.telegram.org/?tag_ids=41&sort=time';
+export const SCHEDULED_WHEN_ONLINE = 0x7ffffffe;
+export const DEFAULT_LANG_CODE = "en";
+export const DEFAULT_LANG_PACK = "android";
+export const LANG_PACKS = ["android", "ios", "tdesktop", "macos"] as const;
+export const FEEDBACK_URL = "https://bugs.telegram.org/?tag_ids=41&sort=time";
 
-export const LIGHT_THEME_BG_COLOR = '#99BA92';
-export const DARK_THEME_BG_COLOR = '#0F0F0F';
-export const DEFAULT_PATTERN_COLOR = '#4A8E3A8C';
-export const DARK_THEME_PATTERN_COLOR = '#0A0A0A8C';
+export const LIGHT_THEME_BG_COLOR = "#99BA92";
+export const DARK_THEME_BG_COLOR = "#0F0F0F";
+export const DEFAULT_PATTERN_COLOR = "#4A8E3A8C";
+export const DARK_THEME_PATTERN_COLOR = "#0A0A0A8C";
 export const MAX_UPLOAD_FILEPART_SIZE = 524288;
 
 // Group calls

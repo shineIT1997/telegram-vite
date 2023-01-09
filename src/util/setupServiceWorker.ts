@@ -1,8 +1,8 @@
-import { DEBUG, DEBUG_MORE, IS_TEST } from '../config';
-import { getActions } from '../global';
-import { formatShareText } from './deeplink';
-import { IS_ANDROID, IS_IOS, IS_SERVICE_WORKER_SUPPORTED } from './environment';
-import { notifyClientReady, playNotifySoundDebounced } from './notifications';
+import { DEBUG, DEBUG_MORE, IS_TEST } from "../config";
+import { getActions } from "../global";
+import { formatShareText } from "./deeplink";
+import { IS_ANDROID, IS_IOS, IS_SERVICE_WORKER_SUPPORTED } from "./environment";
+import { notifyClientReady, playNotifySoundDebounced } from "./notifications";
 
 type WorkerAction = {
   type: string;
@@ -13,21 +13,21 @@ function handleWorkerMessage(e: MessageEvent) {
   const action: WorkerAction = e.data;
   if (DEBUG_MORE) {
     // eslint-disable-next-line no-console
-    console.log('[SW] Message from worker', action);
+    console.log("[SW] Message from worker", action);
   }
   if (!action.type) return;
   const dispatch = getActions();
   const payload = action.payload;
   switch (action.type) {
-    case 'focusMessage':
+    case "focusMessage":
       if (dispatch.focusMessage) {
         dispatch.focusMessage(payload);
       }
       break;
-    case 'playNotificationSound':
+    case "playNotificationSound":
       playNotifySoundDebounced(action.payload.id);
       break;
-    case 'share':
+    case "share":
       dispatch.openChatWithDraft({
         text: formatShareText(payload.url, payload.text, payload.title),
         files: payload.files,
@@ -37,31 +37,39 @@ function handleWorkerMessage(e: MessageEvent) {
 }
 
 function subscribeToWorker() {
-  navigator.serviceWorker.removeEventListener('message', handleWorkerMessage);
-  navigator.serviceWorker.addEventListener('message', handleWorkerMessage);
+  navigator.serviceWorker.removeEventListener("message", handleWorkerMessage);
+  navigator.serviceWorker.addEventListener("message", handleWorkerMessage);
   // Notify web worker that client is ready to receive messages
   notifyClientReady();
 }
 
 if (IS_SERVICE_WORKER_SUPPORTED) {
-  window.addEventListener('load', async () => {
+  window.addEventListener("load", async () => {
     try {
       if (!navigator.serviceWorker.controller) {
         const registrations = await navigator.serviceWorker.getRegistrations();
+        console.log(`registrations`, registrations);
         if (registrations.length) {
           if (DEBUG) {
             // eslint-disable-next-line no-console
-            console.log('[SW] Hard reload detected, re-enabling Service Worker');
+            console.log(
+              "[SW] Hard reload detected, re-enabling Service Worker"
+            );
           }
           await Promise.all(registrations.map((r) => r.unregister()));
         }
       }
 
-      await navigator.serviceWorker.register(new URL('../serviceWorker.ts', import.meta.url));
+      console.log("[SW] ServiceWorker registering");
+
+      await navigator.serviceWorker.register(
+        new URL("../serviceWorker.ts", import.meta.url),
+        { type: "module" }
+      );
 
       if (DEBUG) {
         // eslint-disable-next-line no-console
-        console.log('[SW] ServiceWorker registered');
+        console.log("[SW] ServiceWorker registered");
       }
 
       await navigator.serviceWorker.ready;
@@ -69,27 +77,29 @@ if (IS_SERVICE_WORKER_SUPPORTED) {
       if (navigator.serviceWorker.controller) {
         if (DEBUG) {
           // eslint-disable-next-line no-console
-          console.log('[SW] ServiceWorker ready');
+          console.log("[SW] ServiceWorker ready");
         }
         subscribeToWorker();
       } else {
         if (DEBUG) {
           // eslint-disable-next-line no-console
-          console.error('[SW] ServiceWorker not available');
+          console.error("[SW] ServiceWorker not available");
         }
 
         if (!IS_IOS && !IS_ANDROID && !IS_TEST) {
-          getActions().showDialog?.({ data: { message: 'SERVICE_WORKER_DISABLED', hasErrorKey: true } });
+          getActions().showDialog?.({
+            data: { message: "SERVICE_WORKER_DISABLED", hasErrorKey: true },
+          });
         }
       }
     } catch (err) {
       if (DEBUG) {
         // eslint-disable-next-line no-console
-        console.error('[SW] ServiceWorker registration failed: ', err);
+        console.error("[SW] ServiceWorker registration failed: ", err);
       }
     }
   });
-  window.addEventListener('focus', async () => {
+  window.addEventListener("focus", async () => {
     await navigator.serviceWorker.ready;
     subscribeToWorker();
   });

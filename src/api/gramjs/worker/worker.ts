@@ -1,9 +1,9 @@
-import type { ApiOnProgress, ApiUpdate } from '../../types';
-import type { OriginMessageEvent, WorkerMessageData } from './types';
+import type { ApiOnProgress, ApiUpdate } from "../../types";
+import type { OriginMessageEvent, WorkerMessageData } from "./types";
 
-import { DEBUG } from '../../../config';
-import { initApi, callApi, cancelApiProgress } from '../provider';
-import { log } from '../helpers';
+import { DEBUG } from "../../../config";
+import { initApi, callApi, cancelApiProgress } from "../provider";
+import { log } from "../helpers";
 
 declare const self: WorkerGlobalScope;
 
@@ -13,31 +13,32 @@ const callbackState = new Map<string, ApiOnProgress>();
 
 if (DEBUG) {
   // eslint-disable-next-line no-console
-  console.log('>>> FINISH LOAD WORKER');
+  console.log(">>> FINISH LOAD WORKER");
 }
 
 onmessage = async (message: OriginMessageEvent) => {
   const { data } = message;
 
   switch (data.type) {
-    case 'initApi': {
+    case "initApi": {
       await initApi(onUpdate, data.args[0]);
       break;
     }
-    case 'callMethod': {
-      const {
-        messageId, name, args, withCallback,
-      } = data;
+    case "callMethod": {
+      const { messageId, name, args, withCallback } = data;
       try {
         if (messageId && withCallback) {
           const callback = (...callbackArgs: any[]) => {
             const lastArg = callbackArgs[callbackArgs.length - 1];
 
-            sendToOrigin({
-              type: 'methodCallback',
-              messageId,
-              callbackArgs,
-            }, lastArg instanceof ArrayBuffer ? lastArg : undefined);
+            sendToOrigin(
+              {
+                type: "methodCallback",
+                messageId,
+                callbackArgs,
+              },
+              lastArg instanceof ArrayBuffer ? lastArg : undefined
+            );
           };
 
           callbackState.set(messageId, callback);
@@ -47,18 +48,29 @@ onmessage = async (message: OriginMessageEvent) => {
 
         const response = await callApi(name, ...args);
 
-        if (DEBUG && typeof response === 'object' && 'CONSTRUCTOR_ID' in response) {
-          log('UNEXPECTED RESPONSE', `${name}: ${response.className}`);
+        if (
+          DEBUG &&
+          typeof response === "object" &&
+          "CONSTRUCTOR_ID" in response
+        ) {
+          log("UNEXPECTED RESPONSE", `${name}: ${response.className}`);
         }
 
-        const { arrayBuffer } = (typeof response === 'object' && 'arrayBuffer' in response && response) || {};
+        const { arrayBuffer } =
+          (typeof response === "object" &&
+            "arrayBuffer" in response &&
+            response) ||
+          {};
 
         if (messageId) {
-          sendToOrigin({
-            type: 'methodResponse',
-            messageId,
-            response,
-          }, arrayBuffer);
+          sendToOrigin(
+            {
+              type: "methodResponse",
+              messageId,
+              response,
+            },
+            arrayBuffer
+          );
         }
       } catch (error: any) {
         if (DEBUG) {
@@ -68,7 +80,7 @@ onmessage = async (message: OriginMessageEvent) => {
 
         if (messageId) {
           sendToOrigin({
-            type: 'methodResponse',
+            type: "methodResponse",
             messageId,
             error: { message: error.message },
           });
@@ -81,7 +93,7 @@ onmessage = async (message: OriginMessageEvent) => {
 
       break;
     }
-    case 'cancelProgress': {
+    case "cancelProgress": {
       const callback = callbackState.get(data.messageId);
       if (callback) {
         cancelApiProgress(callback);
@@ -89,9 +101,9 @@ onmessage = async (message: OriginMessageEvent) => {
 
       break;
     }
-    case 'ping': {
+    case "ping": {
       sendToOrigin({
-        type: 'methodResponse',
+        type: "methodResponse",
         messageId: data.messageId!,
       });
 
@@ -104,24 +116,34 @@ function handleErrors() {
   self.onerror = (e) => {
     // eslint-disable-next-line no-console
     console.error(e);
-    sendToOrigin({ type: 'unhandledError', error: { message: e.error.message || 'Uncaught exception in worker' } });
+    sendToOrigin({
+      type: "unhandledError",
+      error: { message: e.error.message || "Uncaught exception in worker" },
+    });
   };
 
-  self.addEventListener('unhandledrejection', (e) => {
+  self.addEventListener("unhandledrejection", (e) => {
     // eslint-disable-next-line no-console
     console.error(e);
-    sendToOrigin({ type: 'unhandledError', error: { message: e.reason.message || 'Uncaught rejection in worker' } });
+    sendToOrigin({
+      type: "unhandledError",
+      error: { message: e.reason.message || "Uncaught rejection in worker" },
+    });
   });
 }
 
 function onUpdate(update: ApiUpdate) {
   sendToOrigin({
-    type: 'update',
+    type: "update",
     update,
   });
 
-  if (DEBUG && update['@type'] !== 'updateUserStatus' && update['@type'] !== 'updateServerTimeOffset') {
-    log('UPDATE', update['@type'], update);
+  if (
+    DEBUG &&
+    update["@type"] !== "updateUserStatus" &&
+    update["@type"] !== "updateServerTimeOffset"
+  ) {
+    log("UPDATE", update["@type"], update);
   }
 }
 
