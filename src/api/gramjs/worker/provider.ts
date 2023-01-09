@@ -1,11 +1,11 @@
-import type { Api } from '../../../lib/gramjs';
-import type { ApiInitialArgs, ApiOnProgress, OnApiUpdate } from '../../types';
-import type { Methods, MethodArgs, MethodResponse } from '../methods/types';
-import type { WorkerMessageEvent, OriginRequest } from './types';
+import type { Api } from "../../../lib/gramjs";
+import type { ApiInitialArgs, ApiOnProgress, OnApiUpdate } from "../../types";
+import type { Methods, MethodArgs, MethodResponse } from "../methods/types";
+import type { WorkerMessageEvent, OriginRequest } from "./types";
 
-import { DEBUG } from '../../../config';
-import generateIdFor from '../../../util/generateIdFor';
-import { pause } from '../../../util/schedulers';
+import { DEBUG } from "../../../config";
+import generateIdFor from "../../../util/generateIdFor";
+import { pause } from "../../../util/schedulers";
 
 type RequestStates = {
   messageId: string;
@@ -27,35 +27,41 @@ export function initApi(onUpdate: OnApiUpdate, initialArgs: ApiInitialArgs) {
   if (!worker) {
     if (DEBUG) {
       // eslint-disable-next-line no-console
-      console.log('>>> START LOAD WORKER');
+      console.log(">>> START LOAD WORKER");
     }
 
-    worker = new Worker(new URL('./worker.ts', import.meta.url));
+    worker = new Worker(new URL("./worker.ts", import.meta.url), {
+      type: "module",
+    });
+
     subscribeToWorker(onUpdate);
 
-    if (initialArgs.platform === 'iOS') {
+    if (initialArgs.platform === "iOS") {
       setupIosHealthCheck();
     }
   }
 
   return makeRequest({
-    type: 'initApi',
+    type: "initApi",
     args: [initialArgs],
   });
 }
 
-export function callApi<T extends keyof Methods>(fnName: T, ...args: MethodArgs<T>) {
+export function callApi<T extends keyof Methods>(
+  fnName: T,
+  ...args: MethodArgs<T>
+) {
   if (!worker) {
     if (DEBUG) {
       // eslint-disable-next-line no-console
-      console.warn('API is not initialized');
+      console.warn("API is not initialized");
     }
 
     return undefined;
   }
 
   const promise = makeRequest({
-    type: 'callMethod',
+    type: "callMethod",
     name: fnName,
     args,
   });
@@ -65,16 +71,17 @@ export function callApi<T extends keyof Methods>(fnName: T, ...args: MethodArgs<
     (async () => {
       try {
         type ForbiddenTypes =
-          Api.VirtualClass<any>
+          | Api.VirtualClass<any>
           | (Api.VirtualClass<any> | undefined)[];
         type ForbiddenResponses =
-          ForbiddenTypes
+          | ForbiddenTypes
           | (AnyLiteral & { [k: string]: ForbiddenTypes });
 
         // Unwrap all chained promises
         const response = await promise;
         // Make sure responses do not include `VirtualClass` instances
-        const allowedResponse: Exclude<typeof response, ForbiddenResponses> = response;
+        const allowedResponse: Exclude<typeof response, ForbiddenResponses> =
+          response;
         // Suppress "unused variable" constraint
         void allowedResponse;
       } catch (err) {
@@ -95,16 +102,16 @@ export function cancelApiProgress(progressCallback: ApiOnProgress) {
   }
 
   worker.postMessage({
-    type: 'cancelProgress',
+    type: "cancelProgress",
     messageId,
   });
 }
 
 function subscribeToWorker(onUpdate: OnApiUpdate) {
-  worker.addEventListener('message', ({ data }: WorkerMessageEvent) => {
-    if (data.type === 'update') {
+  worker.addEventListener("message", ({ data }: WorkerMessageEvent) => {
+    if (data.type === "update") {
       onUpdate(data.update);
-    } else if (data.type === 'methodResponse') {
+    } else if (data.type === "methodResponse") {
       const requestState = requestStates.get(data.messageId);
       if (requestState) {
         if (data.error) {
@@ -113,9 +120,9 @@ function subscribeToWorker(onUpdate: OnApiUpdate) {
           requestState.resolve(data.response);
         }
       }
-    } else if (data.type === 'methodCallback') {
+    } else if (data.type === "methodCallback") {
       requestStates.get(data.messageId)?.callback?.(...data.callbackArgs);
-    } else if (data.type === 'unhandledError') {
+    } else if (data.type === "unhandledError") {
       throw new Error(data.error?.message);
     }
   });
@@ -131,11 +138,17 @@ function makeRequest(message: OriginRequest) {
   const requestState = { messageId } as RequestStates;
 
   // Re-wrap type because of `postMessage`
-  const promise: Promise<MethodResponse<keyof Methods>> = new Promise((resolve, reject) => {
-    Object.assign(requestState, { resolve, reject });
-  });
+  const promise: Promise<MethodResponse<keyof Methods>> = new Promise(
+    (resolve, reject) => {
+      Object.assign(requestState, { resolve, reject });
+    }
+  );
 
-  if ('args' in payload && 'name' in payload && typeof payload.args[1] === 'function') {
+  if (
+    "args" in payload &&
+    "name" in payload &&
+    typeof payload.args[1] === "function"
+  ) {
     payload.withCallback = true;
 
     const callback = payload.args.pop() as AnyToVoidFunction;
@@ -164,7 +177,7 @@ const startedAt = Date.now();
 
 // Workaround for iOS sometimes stops interacting with worker
 function setupIosHealthCheck() {
-  window.addEventListener('focus', () => {
+  window.addEventListener("focus", () => {
     void ensureWorkerPing();
     // Sometimes a single check is not enough
     setTimeout(() => ensureWorkerPing(), 1000);
@@ -176,9 +189,12 @@ async function ensureWorkerPing() {
 
   try {
     await Promise.race([
-      makeRequest({ type: 'ping' }),
-      pause(HEALTH_CHECK_TIMEOUT)
-        .then(() => (isResolved ? undefined : Promise.reject(new Error('HEALTH_CHECK_TIMEOUT')))),
+      makeRequest({ type: "ping" }),
+      pause(HEALTH_CHECK_TIMEOUT).then(() =>
+        isResolved
+          ? undefined
+          : Promise.reject(new Error("HEALTH_CHECK_TIMEOUT"))
+      ),
     ]);
   } catch (err) {
     // eslint-disable-next-line no-console

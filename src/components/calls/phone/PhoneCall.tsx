@@ -1,39 +1,46 @@
-import type { FC } from '../../../lib/teact/teact';
+import type { FC } from "../../../lib/teact/teact";
 import React, {
-  memo, useCallback, useEffect, useMemo, useRef,
-} from '../../../lib/teact/teact';
-import { getActions, withGlobal } from '../../../global';
-import '../../../global/actions/calls';
+  memo,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+} from "../../../lib/teact/teact";
+import { getActions, withGlobal } from "../../../global";
+import "../../../global/actions/calls";
 
-import type { ApiPhoneCall, ApiUser } from '../../../api/types';
-import type { AnimationLevel } from '../../../types';
+import type { ApiPhoneCall, ApiUser } from "../../../api/types";
+import type { AnimationLevel } from "../../../types";
 
 import {
   IS_ANDROID,
   IS_IOS,
   IS_REQUEST_FULLSCREEN_SUPPORTED,
   IS_SINGLE_COLUMN_LAYOUT,
-} from '../../../util/environment';
-import { LOCAL_TGS_URLS } from '../../common/helpers/animatedAssets';
-import buildClassName from '../../../util/buildClassName';
-import { selectPhoneCallUser } from '../../../global/selectors/calls';
-import useLang from '../../../hooks/useLang';
-import renderText from '../../common/helpers/renderText';
-import useFlag from '../../../hooks/useFlag';
-import { formatMediaDuration } from '../../../util/dateFormat';
+} from "../../../util/environment";
+import { LOCAL_TGS_URLS } from "../../common/helpers/animatedAssets";
+import buildClassName from "../../../util/buildClassName";
+import { selectPhoneCallUser } from "../../../global/selectors/calls";
+import useLang from "../../../hooks/useLang";
+import renderText from "../../common/helpers/renderText";
+import useFlag from "../../../hooks/useFlag";
+import { formatMediaDuration } from "../../../util/dateFormat";
 import {
-  getStreams, IS_SCREENSHARE_SUPPORTED, switchCameraInputP2p, toggleStreamP2p,
-} from '../../../lib/secret-sauce';
-import useInterval from '../../../hooks/useInterval';
-import useForceUpdate from '../../../hooks/useForceUpdate';
+  getStreams,
+  IS_SCREENSHARE_SUPPORTED,
+  switchCameraInputP2p,
+  toggleStreamP2p,
+} from "../../../lib/secret-sauce";
+import useInterval from "../../../hooks/useInterval";
+import useForceUpdate from "../../../hooks/useForceUpdate";
 
-import Modal from '../../ui/Modal';
-import Avatar from '../../common/Avatar';
-import Button from '../../ui/Button';
-import PhoneCallButton from './PhoneCallButton';
-import AnimatedIcon from '../../common/AnimatedIcon';
+import Modal from "../../ui/Modal";
+import Avatar from "../../common/Avatar";
+import Button from "../../ui/Button";
+import PhoneCallButton from "./PhoneCallButton";
+import AnimatedIcon from "../../common/AnimatedIcon";
 
-import styles from './PhoneCall.module.scss';
+import styles from "./PhoneCall.module.scss";
 
 type StateProps = {
   user?: ApiUser;
@@ -52,7 +59,11 @@ const PhoneCall: FC<StateProps> = ({
 }) => {
   const lang = useLang();
   const {
-    hangUp, acceptCall, playGroupCallSound, toggleGroupCallPanel, connectToActivePhoneCall,
+    hangUp,
+    acceptCall,
+    playGroupCallSound,
+    toggleGroupCallPanel,
+    connectToActivePhoneCall,
   } = getActions();
   // eslint-disable-next-line no-null/no-null
   const containerRef = useRef<HTMLDivElement>(null);
@@ -82,10 +93,10 @@ const PhoneCall: FC<StateProps> = ({
     const container = containerRef.current;
     if (!container) return undefined;
 
-    container.addEventListener('fullscreenchange', toggleFullscreen);
+    container.addEventListener("fullscreenchange", toggleFullscreen);
 
     return () => {
-      container.removeEventListener('fullscreenchange', toggleFullscreen);
+      container.removeEventListener("fullscreenchange", toggleFullscreen);
     };
   }, [toggleFullscreen]);
 
@@ -96,12 +107,14 @@ const PhoneCall: FC<StateProps> = ({
     }
   }, [closeFullscreen, isFullscreen, toggleGroupCallPanel]);
 
-  const isDiscarded = phoneCall?.state === 'discarded';
-  const isBusy = phoneCall?.reason === 'busy';
+  const isDiscarded = phoneCall?.state === "discarded";
+  const isBusy = phoneCall?.reason === "busy";
 
-  const isIncomingRequested = phoneCall?.state === 'requested' && !isOutgoing;
-  const isOutgoingRequested = (phoneCall?.state === 'requested' || phoneCall?.state === 'waiting') && isOutgoing;
-  const isActive = phoneCall?.state === 'active';
+  const isIncomingRequested = phoneCall?.state === "requested" && !isOutgoing;
+  const isOutgoingRequested =
+    (phoneCall?.state === "requested" || phoneCall?.state === "waiting") &&
+    isOutgoing;
+  const isActive = phoneCall?.state === "active";
   const isConnected = phoneCall?.isConnected;
 
   const [isHangingUp, startHangingUp, stopHangingUp] = useFlag();
@@ -112,19 +125,27 @@ const PhoneCall: FC<StateProps> = ({
 
   useEffect(() => {
     if (isHangingUp) {
-      playGroupCallSound({ sound: 'end' });
+      playGroupCallSound({ sound: "end" });
     } else if (isIncomingRequested) {
-      playGroupCallSound({ sound: 'incoming' });
+      playGroupCallSound({ sound: "incoming" });
     } else if (isBusy) {
-      playGroupCallSound({ sound: 'busy' });
+      playGroupCallSound({ sound: "busy" });
     } else if (isDiscarded) {
-      playGroupCallSound({ sound: 'end' });
+      playGroupCallSound({ sound: "end" });
     } else if (isOutgoingRequested) {
-      playGroupCallSound({ sound: 'ringing' });
+      playGroupCallSound({ sound: "ringing" });
     } else if (isConnected) {
-      playGroupCallSound({ sound: 'connect' });
+      playGroupCallSound({ sound: "connect" });
     }
-  }, [isBusy, isDiscarded, isIncomingRequested, isOutgoingRequested, isConnected, playGroupCallSound, isHangingUp]);
+  }, [
+    isBusy,
+    isDiscarded,
+    isIncomingRequested,
+    isOutgoingRequested,
+    isConnected,
+    playGroupCallSound,
+    isHangingUp,
+  ]);
 
   useEffect(() => {
     if (phoneCall?.id) {
@@ -136,38 +157,47 @@ const PhoneCall: FC<StateProps> = ({
 
   const forceUpdate = useForceUpdate();
 
-  useInterval(() => {
-    forceUpdate();
-  }, isConnected ? 1000 : undefined);
+  useInterval(
+    () => {
+      forceUpdate();
+    },
+    isConnected ? 1000 : undefined
+  );
 
   const callStatus = useMemo(() => {
     const state = phoneCall?.state;
     if (isHangingUp) {
-      return lang('lng_call_status_hanging');
+      return lang("lng_call_status_hanging");
     }
-    if (isBusy) return 'busy';
-    if (state === 'requesting') {
-      return lang('lng_call_status_requesting');
-    } else if (state === 'requested') {
-      return isOutgoing ? lang('lng_call_status_ringing') : lang('lng_call_status_incoming');
-    } else if (state === 'waiting') {
-      return lang('lng_call_status_waiting');
-    } else if (state === 'active' && isConnected) {
+    if (isBusy) return "busy";
+    if (state === "requesting") {
+      return lang("lng_call_status_requesting");
+    } else if (state === "requested") {
+      return isOutgoing
+        ? lang("lng_call_status_ringing")
+        : lang("lng_call_status_incoming");
+    } else if (state === "waiting") {
+      return lang("lng_call_status_waiting");
+    } else if (state === "active" && isConnected) {
       return undefined;
     } else {
-      return lang('lng_call_status_exchanging');
+      return lang("lng_call_status_exchanging");
     }
   }, [isBusy, isConnected, isHangingUp, isOutgoing, lang, phoneCall?.state]);
 
-  const hasVideo = phoneCall?.videoState === 'active';
-  const hasPresentation = phoneCall?.screencastState === 'active';
+  const hasVideo = phoneCall?.videoState === "active";
+  const hasPresentation = phoneCall?.screencastState === "active";
 
   const streams = getStreams();
   const hasOwnAudio = streams?.ownAudio?.getTracks()[0].enabled;
   const hasOwnPresentation = streams?.ownPresentation?.getTracks()[0].enabled;
   const hasOwnVideo = streams?.ownVideo?.getTracks()[0].enabled;
 
-  const [isHidingPresentation, startHidingPresentation, stopHidingPresentation] = useFlag();
+  const [
+    isHidingPresentation,
+    startHidingPresentation,
+    stopHidingPresentation,
+  ] = useFlag();
   const [isHidingVideo, startHidingVideo, stopHidingVideo] = useFlag();
 
   const handleTogglePresentation = useCallback(() => {
@@ -178,12 +208,17 @@ const PhoneCall: FC<StateProps> = ({
       startHidingVideo();
     }
     setTimeout(async () => {
-      await toggleStreamP2p('presentation');
+      await toggleStreamP2p("presentation");
       stopHidingPresentation();
       stopHidingVideo();
     }, 250);
   }, [
-    hasOwnPresentation, hasOwnVideo, startHidingPresentation, startHidingVideo, stopHidingPresentation, stopHidingVideo,
+    hasOwnPresentation,
+    hasOwnVideo,
+    startHidingPresentation,
+    startHidingVideo,
+    stopHidingPresentation,
+    stopHidingVideo,
   ]);
 
   const handleToggleVideo = useCallback(() => {
@@ -194,16 +229,21 @@ const PhoneCall: FC<StateProps> = ({
       startHidingPresentation();
     }
     setTimeout(async () => {
-      await toggleStreamP2p('video');
+      await toggleStreamP2p("video");
       stopHidingPresentation();
       stopHidingVideo();
     }, 250);
   }, [
-    hasOwnPresentation, hasOwnVideo, startHidingPresentation, startHidingVideo, stopHidingPresentation, stopHidingVideo,
+    hasOwnPresentation,
+    hasOwnVideo,
+    startHidingPresentation,
+    startHidingVideo,
+    stopHidingPresentation,
+    stopHidingVideo,
   ]);
 
   const handleToggleAudio = useCallback(() => {
-    void toggleStreamP2p('audio');
+    void toggleStreamP2p("audio");
   }, []);
 
   const [isEmojiOpen, openEmoji, closeEmoji] = useFlag();
@@ -216,41 +256,58 @@ const PhoneCall: FC<StateProps> = ({
     setTimeout(stopFlipping, 250);
   }, [startFlipping, stopFlipping]);
 
-  const timeElapsed = phoneCall?.startDate && (Number(new Date()) / 1000 - phoneCall.startDate);
+  const timeElapsed =
+    phoneCall?.startDate && Number(new Date()) / 1000 - phoneCall.startDate;
 
   useEffect(() => {
-    if (phoneCall?.state === 'discarded') {
+    if (phoneCall?.state === "discarded") {
       setTimeout(hangUp, 250);
     }
   }, [hangUp, phoneCall?.reason, phoneCall?.state]);
 
   return (
     <Modal
-      isOpen={phoneCall && phoneCall?.state !== 'discarded' && !isCallPanelVisible}
+      isOpen={
+        phoneCall && phoneCall?.state !== "discarded" && !isCallPanelVisible
+      }
       onClose={handleClose}
       className={buildClassName(
         styles.root,
-        IS_SINGLE_COLUMN_LAYOUT && styles.singleColumn,
+        IS_SINGLE_COLUMN_LAYOUT && styles.singleColumn
       )}
       dialogRef={containerRef}
     >
       <Avatar
         user={user}
         size="jumbo"
-        className={hasVideo || hasPresentation ? styles.blurred : ''}
+        className={hasVideo || hasPresentation ? styles.blurred : ""}
         withVideo
-        noLoop={phoneCall?.state !== 'requesting'}
+        noLoop={phoneCall?.state !== "requesting"}
         animationLevel={animationLevel}
       />
-      {phoneCall?.screencastState === 'active' && streams?.presentation
-        && <video className={styles.mainVideo} muted autoPlay playsInline srcObject={streams.presentation} />}
-      {phoneCall?.videoState === 'active' && streams?.video
-        && <video className={styles.mainVideo} muted autoPlay playsInline srcObject={streams.video} />}
+      {phoneCall?.screencastState === "active" && streams?.presentation && (
+        <video
+          className={styles.mainVideo}
+          muted
+          autoPlay
+          playsInline
+          srcObject={streams.presentation}
+        />
+      )}
+      {phoneCall?.videoState === "active" && streams?.video && (
+        <video
+          className={styles.mainVideo}
+          muted
+          autoPlay
+          playsInline
+          srcObject={streams.video}
+        />
+      )}
       <video
         className={buildClassName(
           styles.secondVideo,
           !isHidingPresentation && hasOwnPresentation && styles.visible,
-          isFullscreen && styles.fullscreen,
+          isFullscreen && styles.fullscreen
         )}
         muted
         autoPlay
@@ -261,7 +318,7 @@ const PhoneCall: FC<StateProps> = ({
         className={buildClassName(
           styles.secondVideo,
           !isHidingVideo && hasOwnVideo && styles.visible,
-          isFullscreen && styles.fullscreen,
+          isFullscreen && styles.fullscreen
         )}
         muted
         autoPlay
@@ -275,9 +332,13 @@ const PhoneCall: FC<StateProps> = ({
             size="smaller"
             color="translucent"
             onClick={handleToggleFullscreen}
-            ariaLabel={lang(isFullscreen ? 'AccExitFullscreen' : 'AccSwitchToFullscreen')}
+            ariaLabel={lang(
+              isFullscreen ? "AccExitFullscreen" : "AccSwitchToFullscreen"
+            )}
           >
-            <i className={isFullscreen ? 'icon-smallscreen' : 'icon-fullscreen'} />
+            <i
+              className={isFullscreen ? "icon-smallscreen" : "icon-fullscreen"}
+            />
           </Button>
         )}
 
@@ -292,19 +353,33 @@ const PhoneCall: FC<StateProps> = ({
         </Button>
       </div>
       <div
-        className={buildClassName(styles.emojisBackdrop, isEmojiOpen && styles.open)}
+        className={buildClassName(
+          styles.emojisBackdrop,
+          isEmojiOpen && styles.open
+        )}
         onClick={!isEmojiOpen ? openEmoji : closeEmoji}
       >
-        <div className={buildClassName(styles.emojis, isEmojiOpen && styles.open)}>
-          {phoneCall?.isConnected && phoneCall?.emojis && renderText(phoneCall.emojis, ['emoji'])}
+        <div
+          className={buildClassName(styles.emojis, isEmojiOpen && styles.open)}
+        >
+          {phoneCall?.isConnected &&
+            phoneCall?.emojis &&
+            renderText(phoneCall.emojis, ["emoji"])}
         </div>
-        <div className={buildClassName(styles.emojiTooltip, isEmojiOpen && styles.open)}>
-          {lang('CallEmojiKeyTooltip', user?.firstName).replace('%%', '%')}
+        <div
+          className={buildClassName(
+            styles.emojiTooltip,
+            isEmojiOpen && styles.open
+          )}
+        >
+          {lang("CallEmojiKeyTooltip", user?.firstName).replace("%%", "%")}
         </div>
       </div>
       <div className={styles.userInfo}>
         <h1>{user?.firstName}</h1>
-        <span className={styles.status}>{callStatus || formatMediaDuration(timeElapsed || 0)}</span>
+        <span className={styles.status}>
+          {callStatus || formatMediaDuration(timeElapsed || 0)}
+        </span>
       </div>
       <div className={styles.buttons}>
         <PhoneCallButton
@@ -312,27 +387,31 @@ const PhoneCall: FC<StateProps> = ({
           icon="microphone"
           isDisabled={!isActive}
           isActive={hasOwnAudio}
-          label={lang(hasOwnAudio ? 'lng_call_mute_audio' : 'lng_call_unmute_audio')}
+          label={lang(
+            hasOwnAudio ? "lng_call_mute_audio" : "lng_call_unmute_audio"
+          )}
         />
         <PhoneCallButton
           onClick={handleToggleVideo}
           icon="video"
           isDisabled={!isActive}
           isActive={hasOwnVideo}
-          label={lang(hasOwnVideo ? 'lng_call_stop_video' : 'lng_call_start_video')}
+          label={lang(
+            hasOwnVideo ? "lng_call_stop_video" : "lng_call_start_video"
+          )}
         />
         {hasOwnVideo && (IS_ANDROID || IS_IOS) && (
           <PhoneCallButton
             onClick={handleFlipCamera}
-            customIcon={(
+            customIcon={
               <AnimatedIcon
                 tgsUrl={LOCAL_TGS_URLS.CameraFlip}
                 playSegment={!isFlipping ? [0, 1] : [0, 10]}
                 size={32}
               />
-            )}
+            }
             isDisabled={!isActive}
-            label={lang('VoipFlip')}
+            label={lang("VoipFlip")}
           />
         )}
         {IS_SCREENSHARE_SUPPORTED && (
@@ -341,7 +420,7 @@ const PhoneCall: FC<StateProps> = ({
             icon="share-screen"
             isDisabled={!isActive}
             isActive={hasOwnPresentation}
-            label={lang('lng_call_screencast')}
+            label={lang("lng_call_screencast")}
           />
         )}
         {isIncomingRequested && (
@@ -349,7 +428,7 @@ const PhoneCall: FC<StateProps> = ({
             onClick={acceptCall}
             icon="phone-discard"
             isDisabled={isDiscarded}
-            label={lang('lng_call_accept')}
+            label={lang("lng_call_accept")}
             className={styles.accept}
             iconClassName={styles.acceptIcon}
           />
@@ -358,7 +437,9 @@ const PhoneCall: FC<StateProps> = ({
           onClick={handleHangUp}
           icon="phone-discard"
           isDisabled={isDiscarded}
-          label={lang(isIncomingRequested ? 'lng_call_decline' : 'lng_call_end_call')}
+          label={lang(
+            isIncomingRequested ? "lng_call_decline" : "lng_call_end_call"
+          )}
           className={styles.leave}
         />
       </div>
@@ -366,8 +447,8 @@ const PhoneCall: FC<StateProps> = ({
   );
 };
 
-export default memo(withGlobal(
-  (global): StateProps => {
+export default memo(
+  withGlobal((global): StateProps => {
     const { phoneCall, currentUserId } = global;
 
     return {
@@ -377,5 +458,5 @@ export default memo(withGlobal(
       phoneCall,
       animationLevel: global.settings.byKey.animationLevel,
     };
-  },
-)(PhoneCall));
+  })(PhoneCall)
+);

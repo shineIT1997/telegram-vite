@@ -1,12 +1,12 @@
-import { addCallback, removeCallback } from '../lib/teact/teactn';
+import { addCallback, removeCallback } from "../lib/teact/teactn";
 
-import { addActionHandler, getGlobal } from './index';
+import { addActionHandler, getGlobal } from "./index";
 
-import type { GlobalState } from './types';
-import type { ApiChat, ApiUser } from '../api/types';
-import { MAIN_THREAD_ID } from '../api/types';
+import type { GlobalState } from "./types";
+import type { ApiChat, ApiUser } from "../api/types";
+import { MAIN_THREAD_ID } from "../api/types";
 
-import { onBeforeUnload, onIdle, throttle } from '../util/schedulers';
+import { onBeforeUnload, onIdle, throttle } from "../util/schedulers";
 import {
   DEBUG,
   GLOBAL_STATE_CACHE_DISABLED,
@@ -22,26 +22,30 @@ import {
   DEFAULT_PLAYBACK_RATE,
   DEFAULT_PATTERN_COLOR,
   DEFAULT_LIMITS,
-} from '../config';
-import { IS_SINGLE_COLUMN_LAYOUT } from '../util/environment';
-import { isHeavyAnimating } from '../hooks/useHeavyAnimationCheck';
-import { pick, unique } from '../util/iteratees';
+} from "../config";
+import { IS_SINGLE_COLUMN_LAYOUT } from "../util/environment";
+import { isHeavyAnimating } from "../hooks/useHeavyAnimationCheck";
+import { pick, unique } from "../util/iteratees";
 import {
   selectCurrentChat,
   selectCurrentMessageList,
   selectVisibleUsers,
-} from './selectors';
-import { hasStoredSession } from '../util/sessions';
-import { INITIAL_STATE } from './initialState';
-import { parseLocationHash } from '../util/routing';
-import { isUserId } from './helpers';
-import { getOrderedIds } from '../util/folderManager';
-import { clearGlobalForLockScreen } from './reducers';
-import { encryptSession } from '../util/passcode';
+} from "./selectors";
+import { hasStoredSession } from "../util/sessions";
+import { INITIAL_STATE } from "./initialState";
+import { parseLocationHash } from "../util/routing";
+import { isUserId } from "./helpers";
+import { getOrderedIds } from "../util/folderManager";
+import { clearGlobalForLockScreen } from "./reducers";
+import { encryptSession } from "../util/passcode";
 
 const UPDATE_THROTTLE = 5000;
 
-const updateCacheThrottled = throttle(() => onIdle(updateCache), UPDATE_THROTTLE, false);
+const updateCacheThrottled = throttle(
+  () => onIdle(updateCache),
+  UPDATE_THROTTLE,
+  false
+);
 
 let isCaching = false;
 let unsubscribeFromBeforeUnload: NoneToVoidFunction | undefined;
@@ -61,7 +65,7 @@ export function initCache() {
     clearCaching();
   };
 
-  addActionHandler('saveSession', () => {
+  addActionHandler("saveSession", () => {
     if (isCaching) {
       return;
     }
@@ -69,7 +73,7 @@ export function initCache() {
     setupCaching();
   });
 
-  addActionHandler('reset', resetCache);
+  addActionHandler("reset", resetCache);
 }
 
 export function loadCache(initialState: GlobalState): GlobalState | undefined {
@@ -93,14 +97,14 @@ export function loadCache(initialState: GlobalState): GlobalState | undefined {
 function setupCaching() {
   isCaching = true;
   unsubscribeFromBeforeUnload = onBeforeUnload(updateCache, true);
-  window.addEventListener('blur', updateCache);
+  window.addEventListener("blur", updateCache);
   addCallback(updateCacheThrottled);
 }
 
 function clearCaching() {
   isCaching = false;
   removeCallback(updateCacheThrottled);
-  window.removeEventListener('blur', updateCache);
+  window.removeEventListener("blur", updateCache);
   if (unsubscribeFromBeforeUnload) {
     unsubscribeFromBeforeUnload();
   }
@@ -109,15 +113,15 @@ function clearCaching() {
 function readCache(initialState: GlobalState): GlobalState {
   if (DEBUG) {
     // eslint-disable-next-line no-console
-    console.time('global-state-cache-read');
+    console.time("global-state-cache-read");
   }
 
   const json = localStorage.getItem(GLOBAL_STATE_CACHE_KEY);
-  const cached = json ? JSON.parse(json) as GlobalState : undefined;
+  const cached = json ? (JSON.parse(json) as GlobalState) : undefined;
 
   if (DEBUG) {
     // eslint-disable-next-line no-console
-    console.timeEnd('global-state-cache-read');
+    console.timeEnd("global-state-cache-read");
   }
 
   if (cached) {
@@ -129,7 +133,9 @@ function readCache(initialState: GlobalState): GlobalState {
     ...cached,
   };
 
-  const parsedMessageList = !IS_SINGLE_COLUMN_LAYOUT ? parseLocationHash() : undefined;
+  const parsedMessageList = !IS_SINGLE_COLUMN_LAYOUT
+    ? parseLocationHash()
+    : undefined;
 
   return {
     ...newState,
@@ -151,7 +157,7 @@ export function migrateCache(cached: GlobalState, initialState: GlobalState) {
 
 function unsafeMigrateCache(cached: GlobalState, initialState: GlobalState) {
   // Migrate from legacy setting names
-  if ('shouldAutoDownloadMediaFromContacts' in cached.settings.byKey) {
+  if ("shouldAutoDownloadMediaFromContacts" in cached.settings.byKey) {
     const {
       shouldAutoDownloadMediaFromContacts,
       shouldAutoDownloadMediaInPrivateChats,
@@ -314,7 +320,10 @@ function unsafeMigrateCache(cached: GlobalState, initialState: GlobalState) {
 
   // TODO Remove in Jan 2023 (this was re-designed but can be hardcoded in cache)
   const { light: lightTheme } = cached.settings.themes;
-  if (lightTheme?.patternColor === 'rgba(90, 110, 70, 0.6)' || !lightTheme?.patternColor) {
+  if (
+    lightTheme?.patternColor === "rgba(90, 110, 70, 0.6)" ||
+    !lightTheme?.patternColor
+  ) {
     cached.settings.themes.light = {
       ...lightTheme,
       patternColor: DEFAULT_PATTERN_COLOR,
@@ -329,35 +338,52 @@ function unsafeMigrateCache(cached: GlobalState, initialState: GlobalState) {
   });
 
   // TODO Remove in Mar 2023 (this was re-designed but can be hardcoded in cache)
-  if (cached.users.byId && Object.values(cached.users.byId).some((u) => 'username' in u)) {
-    cached.users.byId = Object.entries(cached.users.byId).reduce((acc, [id, user]) => {
-      if ('username' in user) {
-        delete user.username;
-      }
-      acc[id] = user;
+  if (
+    cached.users.byId &&
+    Object.values(cached.users.byId).some((u) => "username" in u)
+  ) {
+    cached.users.byId = Object.entries(cached.users.byId).reduce(
+      (acc, [id, user]) => {
+        if ("username" in user) {
+          delete user.username;
+        }
+        acc[id] = user;
 
-      return acc;
-    }, {} as Record<string, ApiUser>);
+        return acc;
+      },
+      {} as Record<string, ApiUser>
+    );
   }
 
   // TODO Remove in Mar 2023 (this was re-designed but can be hardcoded in cache)
-  if (cached.chats.byId && Object.values(cached.chats.byId).some((c) => 'username' in c)) {
-    cached.chats.byId = Object.entries(cached.chats.byId).reduce((acc, [id, user]) => {
-      if ('username' in user) {
-        delete user.username;
-      }
-      acc[id] = user;
+  if (
+    cached.chats.byId &&
+    Object.values(cached.chats.byId).some((c) => "username" in c)
+  ) {
+    cached.chats.byId = Object.entries(cached.chats.byId).reduce(
+      (acc, [id, user]) => {
+        if ("username" in user) {
+          delete user.username;
+        }
+        acc[id] = user;
 
-      return acc;
-    }, {} as Record<string, ApiChat>);
+        return acc;
+      },
+      {} as Record<string, ApiChat>
+    );
   }
 
   // TODO Remove in Apr 2023 (this was re-designed but can be hardcoded in cache)
   if (cached.messages.byChatId) {
-    const wasUpdated = Object.values(cached.messages.byChatId)
-      .some((messages) => Object.values(messages.byId).some(({ reactions }) => {
-        return reactions?.results[0]?.reaction && typeof reactions.results[0].reaction !== 'string';
-      }));
+    const wasUpdated = Object.values(cached.messages.byChatId).some(
+      (messages) =>
+        Object.values(messages.byId).some(({ reactions }) => {
+          return (
+            reactions?.results[0]?.reaction &&
+            typeof reactions.results[0].reaction !== "string"
+          );
+        })
+    );
     if (!wasUpdated) {
       for (const messages of Object.values(cached.messages.byChatId)) {
         for (const message of Object.values(messages.byId)) {
@@ -366,12 +392,14 @@ function unsafeMigrateCache(cached: GlobalState, initialState: GlobalState) {
       }
     }
   }
-  if (typeof cached.config?.defaultReaction === 'string') {
+  if (typeof cached.config?.defaultReaction === "string") {
     cached.config.defaultReaction = { emoticon: cached.config.defaultReaction };
   }
-  if (typeof cached.availableReactions?.[0].reaction === 'string') {
-    cached.availableReactions = cached.availableReactions
-      .map((r) => ({ ...r, reaction: { emoticon: r.reaction as unknown as string } }));
+  if (typeof cached.availableReactions?.[0].reaction === "string") {
+    cached.availableReactions = cached.availableReactions.map((r) => ({
+      ...r,
+      reaction: { emoticon: r.reaction as unknown as string },
+    }));
   }
 }
 
@@ -394,7 +422,9 @@ export function forceUpdateCache(noEncrypt = false) {
       void encryptSession(undefined, serializedGlobal);
     }
 
-    const serializedGlobalClean = JSON.stringify(clearGlobalForLockScreen(global));
+    const serializedGlobalClean = JSON.stringify(
+      clearGlobalForLockScreen(global)
+    );
     localStorage.setItem(GLOBAL_STATE_CACHE_KEY, serializedGlobalClean);
 
     return;
@@ -407,21 +437,21 @@ export function serializeGlobal(global: GlobalState) {
   const reducedGlobal: GlobalState = {
     ...INITIAL_STATE,
     ...pick(global, [
-      'appConfig',
-      'authState',
-      'authPhoneNumber',
-      'authRememberMe',
-      'authNearestCountry',
-      'currentUserId',
-      'contactList',
-      'topPeers',
-      'topInlineBots',
-      'recentEmojis',
-      'recentCustomEmojis',
-      'push',
-      'shouldShowContextMenuHint',
-      'leftColumnWidth',
-      'serviceNotifications',
+      "appConfig",
+      "authState",
+      "authPhoneNumber",
+      "authRememberMe",
+      "authNearestCountry",
+      "currentUserId",
+      "contactList",
+      "topPeers",
+      "topInlineBots",
+      "recentEmojis",
+      "recentCustomEmojis",
+      "push",
+      "shouldShowContextMenuHint",
+      "leftColumnWidth",
+      "serviceNotifications",
     ]),
     audioPlayer: {
       volume: global.audioPlayer.volume,
@@ -448,18 +478,21 @@ export function serializeGlobal(global: GlobalState) {
     isCallPanelVisible: undefined,
     trustedBotIds: global.trustedBotIds,
     passcode: pick(global.passcode, [
-      'isScreenLocked',
-      'hasPasscode',
-      'invalidAttemptsCount',
+      "isScreenLocked",
+      "hasPasscode",
+      "invalidAttemptsCount",
     ]),
   };
 
   return JSON.stringify(reducedGlobal);
 }
 
-function reduceCustomEmojis(global: GlobalState): GlobalState['customEmojis'] {
+function reduceCustomEmojis(global: GlobalState): GlobalState["customEmojis"] {
   const { lastRendered, byId } = global.customEmojis;
-  const idsToSave = lastRendered.slice(0, GLOBAL_STATE_CACHE_CUSTOM_EMOJI_LIMIT);
+  const idsToSave = lastRendered.slice(
+    0,
+    GLOBAL_STATE_CACHE_CUSTOM_EMOJI_LIMIT
+  );
   const byIdToSave = pick(byId, idsToSave);
 
   return {
@@ -476,20 +509,23 @@ function reduceShowChatInfo(global: GlobalState): boolean {
     : false;
 }
 
-function reduceUsers(global: GlobalState): GlobalState['users'] {
-  const { users: { byId, statusesById }, currentUserId } = global;
+function reduceUsers(global: GlobalState): GlobalState["users"] {
+  const {
+    users: { byId, statusesById },
+    currentUserId,
+  } = global;
   const { chatId: currentChatId } = selectCurrentMessageList(global) || {};
   const visibleUserIds = selectVisibleUsers(global)?.map(({ id }) => id);
 
   const idsToSave = unique([
-    ...currentUserId ? [currentUserId] : [],
-    ...currentChatId && isUserId(currentChatId) ? [currentChatId] : [],
-    ...visibleUserIds || [],
-    ...global.topPeers.userIds || [],
-    ...getOrderedIds(ALL_FOLDER_ID)?.filter(isUserId) || [],
-    ...getOrderedIds(ARCHIVED_FOLDER_ID)?.filter(isUserId) || [],
-    ...global.contactList?.userIds || [],
-    ...global.globalSearch.recentlyFoundChatIds?.filter(isUserId) || [],
+    ...(currentUserId ? [currentUserId] : []),
+    ...(currentChatId && isUserId(currentChatId) ? [currentChatId] : []),
+    ...(visibleUserIds || []),
+    ...(global.topPeers.userIds || []),
+    ...(getOrderedIds(ALL_FOLDER_ID)?.filter(isUserId) || []),
+    ...(getOrderedIds(ARCHIVED_FOLDER_ID)?.filter(isUserId) || []),
+    ...(global.contactList?.userIds || []),
+    ...(global.globalSearch.recentlyFoundChatIds?.filter(isUserId) || []),
     ...Object.keys(byId),
   ]).slice(0, GLOBAL_STATE_CACHE_USER_LIST_LIMIT);
 
@@ -499,15 +535,18 @@ function reduceUsers(global: GlobalState): GlobalState['users'] {
   };
 }
 
-function reduceChats(global: GlobalState): GlobalState['chats'] {
-  const { chats: { byId }, currentUserId } = global;
+function reduceChats(global: GlobalState): GlobalState["chats"] {
+  const {
+    chats: { byId },
+    currentUserId,
+  } = global;
   const currentChat = selectCurrentChat(global);
   const idsToSave = unique([
-    ...currentUserId ? [currentUserId] : [],
-    ...currentChat ? [currentChat.id] : [],
-    ...getOrderedIds(ALL_FOLDER_ID) || [],
-    ...getOrderedIds(ARCHIVED_FOLDER_ID) || [],
-    ...global.globalSearch.recentlyFoundChatIds || [],
+    ...(currentUserId ? [currentUserId] : []),
+    ...(currentChat ? [currentChat.id] : []),
+    ...(getOrderedIds(ALL_FOLDER_ID) || []),
+    ...(getOrderedIds(ARCHIVED_FOLDER_ID) || []),
+    ...(global.globalSearch.recentlyFoundChatIds || []),
     ...Object.keys(byId),
   ]).slice(0, GLOBAL_STATE_CACHE_CHAT_LIST_LIMIT);
 
@@ -518,14 +557,21 @@ function reduceChats(global: GlobalState): GlobalState['chats'] {
   };
 }
 
-function reduceMessages(global: GlobalState): GlobalState['messages'] {
+function reduceMessages(global: GlobalState): GlobalState["messages"] {
   const { currentUserId } = global;
-  const byChatId: GlobalState['messages']['byChatId'] = {};
-  const { chatId: currentChatId, threadId, type } = selectCurrentMessageList(global) || {};
+  const byChatId: GlobalState["messages"]["byChatId"] = {};
+  const {
+    chatId: currentChatId,
+    threadId,
+    type,
+  } = selectCurrentMessageList(global) || {};
   const chatIdsToSave = [
-    ...currentChatId ? [currentChatId] : [],
-    ...currentUserId ? [currentUserId] : [],
-    ...getOrderedIds(ALL_FOLDER_ID)?.slice(0, GLOBAL_STATE_CACHE_CHATS_WITH_MESSAGES_LIMIT) || [],
+    ...(currentChatId ? [currentChatId] : []),
+    ...(currentUserId ? [currentUserId] : []),
+    ...(getOrderedIds(ALL_FOLDER_ID)?.slice(
+      0,
+      GLOBAL_STATE_CACHE_CHATS_WITH_MESSAGES_LIMIT
+    ) || []),
   ];
 
   chatIdsToSave.forEach((chatId) => {
@@ -549,12 +595,15 @@ function reduceMessages(global: GlobalState): GlobalState['messages'] {
 
   return {
     byChatId,
-    messageLists: currentChatId && threadId && type ? [{ chatId: currentChatId, threadId, type }] : [],
+    messageLists:
+      currentChatId && threadId && type
+        ? [{ chatId: currentChatId, threadId, type }]
+        : [],
     sponsoredByChatId: {},
   };
 }
 
-function reduceSettings(global: GlobalState): GlobalState['settings'] {
+function reduceSettings(global: GlobalState): GlobalState["settings"] {
   const { byKey, themes } = global.settings;
 
   return {
@@ -565,14 +614,14 @@ function reduceSettings(global: GlobalState): GlobalState['settings'] {
   };
 }
 
-function reduceChatFolders(global: GlobalState): GlobalState['chatFolders'] {
+function reduceChatFolders(global: GlobalState): GlobalState["chatFolders"] {
   return {
     ...global.chatFolders,
     activeChatFolder: 0,
   };
 }
 
-function reduceGroupCalls(global: GlobalState): GlobalState['groupCalls'] {
+function reduceGroupCalls(global: GlobalState): GlobalState["groupCalls"] {
   return {
     ...global.groupCalls,
     byId: {},
@@ -580,7 +629,10 @@ function reduceGroupCalls(global: GlobalState): GlobalState['groupCalls'] {
   };
 }
 
-function reduceAvailableReactions(global: GlobalState): GlobalState['availableReactions'] {
-  return global.availableReactions
-    ?.map((r) => pick(r, ['reaction', 'staticIcon', 'title', 'isInactive']));
+function reduceAvailableReactions(
+  global: GlobalState
+): GlobalState["availableReactions"] {
+  return global.availableReactions?.map((r) =>
+    pick(r, ["reaction", "staticIcon", "title", "isInactive"])
+  );
 }

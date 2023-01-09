@@ -1,15 +1,16 @@
-import type { RefObject } from 'react';
-import {
-  useEffect, useRef, useCallback, useState,
-} from '../lib/teact/teact';
+import type { RefObject } from "react";
+import { useEffect, useRef, useCallback, useState } from "../lib/teact/teact";
 
-import { throttle, debounce } from '../util/schedulers';
-import useHeavyAnimationCheck from './useHeavyAnimationCheck';
+import { throttle, debounce } from "../util/schedulers";
+import useHeavyAnimationCheck from "./useHeavyAnimationCheck";
 
 type TargetCallback = (entry: IntersectionObserverEntry) => void;
 type RootCallback = (entries: IntersectionObserverEntry[]) => void;
 type ObserveCleanup = NoneToVoidFunction;
-export type ObserveFn = (target: HTMLElement, targetCallback?: TargetCallback) => ObserveCleanup;
+export type ObserveFn = (
+  target: HTMLElement,
+  targetCallback?: TargetCallback
+) => ObserveCleanup;
 
 interface IntersectionController {
   observer: IntersectionObserver;
@@ -22,23 +23,26 @@ interface Response {
   unfreeze: NoneToVoidFunction;
 }
 
-export function useIntersectionObserver({
-  rootRef,
-  throttleMs,
-  debounceMs,
-  shouldSkipFirst,
-  margin,
-  threshold,
-  isDisabled,
-}: {
-  rootRef: RefObject<HTMLDivElement>;
-  throttleMs?: number;
-  debounceMs?: number;
-  shouldSkipFirst?: boolean;
-  margin?: number;
-  threshold?: number | number[];
-  isDisabled?: boolean;
-}, rootCallback?: RootCallback): Response {
+export function useIntersectionObserver(
+  {
+    rootRef,
+    throttleMs,
+    debounceMs,
+    shouldSkipFirst,
+    margin,
+    threshold,
+    isDisabled,
+  }: {
+    rootRef: RefObject<HTMLDivElement>;
+    throttleMs?: number;
+    debounceMs?: number;
+    shouldSkipFirst?: boolean;
+    margin?: number;
+    threshold?: number | number[];
+    isDisabled?: boolean;
+  },
+  rootCallback?: RootCallback
+): Response {
   const controllerRef = useRef<IntersectionController>();
   const rootCallbackRef = useRef<RootCallback>();
   const freezeFlagsRef = useRef(0);
@@ -100,7 +104,11 @@ export function useIntersectionObserver({
     };
     const scheduler = throttleMs ? throttle : debounceMs ? debounce : undefined;
     const observerCallback = scheduler
-      ? scheduler(observerCallbackSync, (throttleMs || debounceMs)!, !shouldSkipFirst)
+      ? scheduler(
+          observerCallbackSync,
+          (throttleMs || debounceMs)!,
+          !shouldSkipFirst
+        )
       : observerCallbackSync;
     const observer = new IntersectionObserver(
       (entries) => {
@@ -120,40 +128,45 @@ export function useIntersectionObserver({
         root: rootRef.current,
         rootMargin: margin ? `${margin}px` : undefined,
         threshold,
-      },
+      }
     );
 
     controllerRef.current = { observer, callbacks };
   }
 
-  const observe = useCallback((target, targetCallback) => {
-    if (!controllerRef.current) {
-      initController();
-    }
-
-    const controller = controllerRef.current!;
-    controller.observer.observe(target);
-
-    if (targetCallback) {
-      controller.callbacks.set(target, targetCallback);
-    }
-
-    return () => {
-      if (targetCallback) {
-        controller.callbacks.delete(target);
+  const observe = useCallback(
+    (target, targetCallback) => {
+      if (!controllerRef.current) {
+        initController();
       }
 
-      controller.observer.unobserve(target);
-    };
-    // Arguments should never change
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isDisabled]);
+      const controller = controllerRef.current!;
+      controller.observer.observe(target);
+
+      if (targetCallback) {
+        controller.callbacks.set(target, targetCallback);
+      }
+
+      return () => {
+        if (targetCallback) {
+          controller.callbacks.delete(target);
+        }
+
+        controller.observer.unobserve(target);
+      };
+      // Arguments should never change
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    },
+    [isDisabled]
+  );
 
   return { observe, freeze, unfreeze };
 }
 
 export function useOnIntersect(
-  targetRef: RefObject<HTMLDivElement>, observe?: ObserveFn, callback?: TargetCallback,
+  targetRef: RefObject<HTMLDivElement>,
+  observe?: ObserveFn,
+  callback?: TargetCallback
 ) {
   useEffect(() => {
     return observe ? observe(targetRef.current!, callback) : undefined;
@@ -163,7 +176,9 @@ export function useOnIntersect(
 }
 
 export function useIsIntersecting(
-  targetRef: RefObject<HTMLDivElement>, observe?: ObserveFn, callback?: TargetCallback,
+  targetRef: RefObject<HTMLDivElement>,
+  observe?: ObserveFn,
+  callback?: TargetCallback
 ) {
   const [isIntersecting, setIsIntersecting] = useState(!observe);
 

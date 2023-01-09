@@ -1,18 +1,18 @@
-import { addActionHandler } from './index';
+import { addActionHandler } from "./index";
 
-import { INITIAL_STATE } from './initialState';
-import { IS_MOCKED_CLIENT } from '../config';
-import { initCache, loadCache } from './cache';
-import { cloneDeep } from '../util/iteratees';
-import { updatePasscodeSettings } from './reducers';
-import { clearStoredSession } from '../util/sessions';
+import { INITIAL_STATE } from "./initialState";
+import { IS_MOCKED_CLIENT } from "../config";
+import { initCache, loadCache } from "./cache";
+import { cloneDeep } from "../util/iteratees";
+import { updatePasscodeSettings } from "./reducers";
+import { clearStoredSession } from "../util/sessions";
 
 initCache();
 
-addActionHandler('init', () => {
+addActionHandler("init", () => {
   const initial = cloneDeep(INITIAL_STATE);
   let global = loadCache(initial) || initial;
-  if (IS_MOCKED_CLIENT) global.authState = 'authorizationStateReady';
+  if (IS_MOCKED_CLIENT) global.authState = "authorizationStateReady";
 
   const { hasPasscode, isScreenLocked } = global.passcode;
   if (hasPasscode && !isScreenLocked) {
